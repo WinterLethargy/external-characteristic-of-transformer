@@ -1,4 +1,7 @@
-﻿using System;
+﻿using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
@@ -64,10 +67,9 @@ namespace TransformExtChar.ViewModel
         public double I2_step { get => _I2_step; set => Set(ref _I2_step, value); }
         #endregion
 
-        private List<VCData> _transExtChar;
-        public List<VCData> TransExtChar { get => _transExtChar; set => Set(ref _transExtChar, value); }
+        public List<VCData> TransExtChar { get; set; }
 
-        async public void CalcExtChar()
+        public void CalcExtChar()
         {
             Transformer transformer = new Transformer()
             {
@@ -77,7 +79,7 @@ namespace TransformExtChar.ViewModel
                 Zm = new Complex(Rm, Xm)
             };
             const double toRad = Math.PI / 180;
-            TransExtChar = await transformer.GetExternalCharacteristicAsync(Fi2 * toRad, I2_start, I2_end, U1, I2_step);
+            TransExtChar = transformer.GetExternalCharacteristic(Fi2 * toRad, I2_start, I2_end, U1, I2_step);
         }
 
         internal void CalcParamFromDataSheet(CalcParamFromDataSheetViewModel dialogViewModel)
