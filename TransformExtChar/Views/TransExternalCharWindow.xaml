@@ -8,6 +8,7 @@
         xmlns:sys ="clr-namespace:System;assembly=System"
         xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
+        x:Name="thisWindow"
         Title="Внешняя характеристика трансформатора" Height="450" Width="800" MinWidth="770" MinHeight="600">
     <Window.DataContext>
         <vm:TransExternalCharViewModel/>
@@ -172,32 +173,10 @@
         </Image>
         
         <!--График-->
-        <oxy:Plot Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5"
-                  Title="Внешняя характеристика трансформатора"
-                  TitleFontSize="16"
-                  TitlePadding="3">
-            <oxy:Plot.Axes>
-                <oxy:LinearAxis x:Name="VolageAxis"
-                                Title="U2"
-                                Unit="В"
-                                Position="Left"
-                                MajorGridlineStyle="Solid"
-                                MinorGridlineStyle="Dot"
-                                />
-                <oxy:LinearAxis x:Name="CurrentAxis"
-                                Title="I2"
-                                Unit="А"
-                                Position="Bottom"
-                                MajorGridlineStyle="Solid"
-                                MinorGridlineStyle="Dot"
-                                />
-            </oxy:Plot.Axes>
-            <!--TrackerFormatString="" задано в конструкторе окна-->
-            <oxy:LineSeries x:Name="PlotLineSeries"
-                            Color="Black"
-                            ItemsSource="{Binding TransExtChar}"
-                            DataFieldX="Current"
-                            DataFieldY="Voltage"/>
-        </oxy:Plot>
+        <oxy:PlotView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5"
+                      x:Name="plotter"
+                      Model="{Binding ElementName=thisWindow, Path=Plotter}">
+
+        </oxy:PlotView>
     </Grid>
 </Window>
