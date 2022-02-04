@@ -1,5 +1,6 @@
 ﻿using OxyPlot;
 using OxyPlot.Axes;
+using OxyPlot.Legends;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,12 @@ namespace TransformExtChar
     // сделать статическим, но не думаю, что это хорошая идея.
     public partial class TransExternalCharWindow : Window, INotifyPropertyChanged
     {
+        private static RoutedCommand _FixSeriesCommand;
+        public static RoutedCommand FixSeriesCommand { get { return _FixSeriesCommand; } }
+
+        private static RoutedCommand _DeleteHiddenSeriesCommand;
+        public static RoutedCommand DeleteHiddenSeriesCommand { get { return _DeleteHiddenSeriesCommand; } }
+        
         #region Реализация INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -54,13 +61,33 @@ namespace TransformExtChar
 
         private PlotModel _plotter;
         public PlotModel Plotter { get => _plotter; set => Set(ref _plotter, value); }
+        private LineSeries EditedSeries { get; set; } // График, который будет изменяться при нажатии на "Построить..."
+        private LinearAxis UAxis { get; }
+        private LinearAxis IAxis { get; }
+        private int CalcSeriesCounter { get; set; } = 1;
+        private int UsersSeriesCounter { get; set; } = 1;
 
+        #region Конструкторы
         public TransExternalCharWindow()
         {
             InitializeComponent();
             ThisViewModel = (TransExternalCharViewModel)DataContext;
             Plotter = CreatePlotModel();
+            UAxis = (LinearAxis)Plotter.Axes[0];
+            IAxis = (LinearAxis)Plotter.Axes[1];
+            EditedSeries = new LineSeries
+            {
+                Title = "Рассчетная характеристика",                        // отличитильные черты редактируемого графика - название и цвет
+                Color = OxyColors.Black,
+                TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
+            };
         }
+        static TransExternalCharWindow()
+        {
+            _FixSeriesCommand = new RoutedCommand("FixSeriesCommand", typeof(TransExternalCharWindow));
+            _DeleteHiddenSeriesCommand = new RoutedCommand("DeleteHiddenSeriesCommand", typeof(TransExternalCharWindow));
+        }
+        #endregion
 
         private static PlotModel CreatePlotModel()
         {
@@ -88,40 +115,50 @@ namespace TransformExtChar
             };
             pm.Axes.Add(U2);
             pm.Axes.Add(I2);
-            LineSeries extCh = new LineSeries
+            var l = new Legend
             {
-                Color = OxyColors.Black,
-                TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
+                LegendPlacement = LegendPlacement.Inside,
+                LegendPosition = LegendPosition.RightTop,
+                LegendBackground = OxyColor.FromAColor(200, OxyColors.White),
+                LegendBorder = OxyColors.Black
             };
-            pm.Series.Add(extCh);
+            pm.Legends.Add(l);
             return pm;
         }
-
-        #region обработчики команд
+        #region обработчики команд и событий
         async public void CalcExtChar(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
         {
-            await Task.Run(() => ThisViewModel.CalcExtChar());
-            UpdateExtCharSeriesAsync();
-        }
+            await Task.Run(() => ThisViewModel.CalcExtChar());                  // посчитать график во ViewModel
+            
+            if (ThisViewModel.TransExtChar.Count == 0)                          // если введены некорректные данные и график содержит 0 точек
+            {                                                                   // то удалить график из плоттера (чтобы в легенде не отображалось несуществующего графика)
+                Plotter.Series.Remove(EditedSeries);
+                PlotView.InvalidatePlot(false);                                 // обновить плоттер
+                return;
+            }
+            
+            await UpdateExtCharSeriesAsync();                                   // обновить точки редактируемой серии
 
+            if (!Plotter.Series.Contains(EditedSeries))                         // если плоттер не содержит редактируемый график,
+                Plotter.Series.Add(EditedSeries);                               // то добавить его
+
+            IAxis.MinimumRange = ThisViewModel.I2_step;      // нельзя приблизить больше, чем на шаг тока (избегаем подтормаживания)
+            UAxis.MinimumRange = ThisViewModel.U1 / 100000;  // нельзя приблизить больше, чем в сто тысяч раз раз (избегаем подтормаживания)
+                                                             // про MaximumRange сложно что-то сказать
+
+            PlotView.ResetAllAxes();
+            PlotView.InvalidatePlot();
+        }
         private Task UpdateExtCharSeriesAsync()
         {
             return Task.Run(() => {
-                var seriesPoints = ((LineSeries)Plotter.Series[0]).Points;
-
-                seriesPoints.Clear();
+                EditedSeries.Points.Clear();
                 foreach (var point in ThisViewModel.TransExtChar)
                 {
-                    seriesPoints.Add(new DataPoint(point.Current, point.Voltage));
+                    EditedSeries.Points.Add(new DataPoint(point.Current, point.Voltage));
                 }
-
-                Plotter.Axes[0].MinimumRange = ThisViewModel.I2_step;      // нельзя приблизить больше, чем на шаг тока (избегаем подтормаживания)
-                Plotter.Axes[1].MinimumRange = ThisViewModel.U1 / 100000;  // нельзя приблизить больше, чем в сто тысяч раз раз (избегаем подтормаживания)
-                                                                           // про MaximumRange сложно что-то сказать
-                plotter.InvalidatePlot();
             });
         }
-
         public void CalcParamFromDataSheet(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
         {
             CalcParamFromDataSheetWindow dialog = new CalcParamFromDataSheetWindow(); // Создать в другом потоке нельзя
@@ -132,7 +169,70 @@ namespace TransformExtChar
                 Task.Run(() => ThisViewModel.CalcParamFromDataSheet(calcParamFromDataSheetViewModel)); 
             }
         }
+        public void FixSeries_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if(!TryGetTitle($"Расчетная характеристика {CalcSeriesCounter}", out var title))
+                return;
+
+            CalcSeriesCounter++;
+
+            LineSeries newSeries = new LineSeries                                           // создать новый график
+            {
+                Title = title,
+                TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
+            };
+            Plotter.Series.Remove(EditedSeries);                                            // удалить редактируемый график из плоттера
+            Plotter.Series.Add(newSeries);                                                  // добавить новый график в плоттер
+            newSeries.Points.AddRange(EditedSeries.Points);                                 // добавиь точки в новый график
+            EditedSeries.Points.Clear();                                                    // очистить редактируемый график, чтобы отключить команду
+            PlotView.InvalidatePlot(false);                                                 // обновить
+        }
+        private void FixSeries_CanExecuted(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = EditedSeries.Points.Count != 0 && EditedSeries.IsVisible == true;
+        }
+        private void RefreshAxis(object sender, RoutedEventArgs e)
+        {
+            PlotView.ResetAllAxes();
+            PlotView.InvalidatePlot(false);
+        }
+        private void DeleteHiddenSeries_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = Plotter.Series.Any(series => series.IsVisible == false);
+        }
         #endregion
+        private void DeleteHiddenSeries_Execute(object sender, ExecutedRoutedEventArgs e)
+        {
+            Series[] deletedSeries = Plotter.Series.Where(series => series.IsVisible == false).ToArray();
+            foreach (var series in deletedSeries)
+            {
+                Plotter.Series.Remove(series);
+            }
+
+            if (deletedSeries.Contains(EditedSeries))
+            {
+                EditedSeries.IsVisible = true;
+                EditedSeries.Points.Clear();
+            }
+
+
+            PlotView.InvalidatePlot();
+        }
+        private bool TryGetTitle(string template, out string title)
+        {
+            EnterTitleWindow dialog = new EnterTitleWindow(template);
+            dialog.Owner = this;
+            if (dialog.ShowDialog() == true)
+            {
+                title = dialog.Text;
+                return true;
+            }
+            else
+            {
+                title = null;
+                return false;
+            }
+        }
     }
 }
 

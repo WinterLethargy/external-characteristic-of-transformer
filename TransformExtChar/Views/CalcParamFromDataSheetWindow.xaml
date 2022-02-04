@@ -17,87 +17,86 @@
     <Grid>
         <Border Grid.Row="0" Grid.Column="0" Margin="3" BorderThickness="3" BorderBrush="Gray" CornerRadius="7" Background="LightGray">
             <!--Поля ввода паспортных данных-->
-                <StackPanel Margin="3">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition x:Name="FirstColumn" Width="1*"/>
-                            <ColumnDefinition x:Name="SecondColumn" Width="2*"/>
-                            <ColumnDefinition x:Name="ThirdColumn" Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">U1н:</Label>
-                        <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=U1r, Mode=TwoWay}"/>
-                        <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">В - Номинальное первичное напряжение</Label>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">U2н:</Label>
-                        <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=U2r, Mode=TwoWay}"/>
-                        <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">В - Номинальное вторичное напряжение</Label>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I1н:</Label>
-                        <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=I1r, Mode=TwoWay}"/>
-                        <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А - Номинальный ток первичной обмотки</Label>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I0:</Label>
-                        <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=I0, Mode=TwoWay}"/>
-                        <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А - Ток холостого хода</Label>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">P0:</Label>
-                        <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=P0, Mode=TwoWay}"/>
-                        <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Вт - Мощность холостого хода</Label>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">U1кз:</Label>
-                        <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=U1sc, Mode=TwoWay}"/>
-                        <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">В - Напряжение короткого замыкания (при I1н)</Label>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
-                            <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">Pкз:</Label>
-                        <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=Psc, Mode=TwoWay}"/>
-                        <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Вт - Мощность короткого замыкания (при I1н)</Label>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+            <StackPanel Margin="3">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition x:Name="FirstColumn" Width="1*"/>
+                        <ColumnDefinition x:Name="SecondColumn" Width="2*"/>
+                        <ColumnDefinition x:Name="ThirdColumn" Width="6*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">U1н:</Label>
+                    <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=U1r, Mode=TwoWay}"/>
+                    <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">В - Номинальное первичное напряжение</Label>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">U2н:</Label>
+                    <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=U2r, Mode=TwoWay}"/>
+                    <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">В - Номинальное вторичное напряжение</Label>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I1н:</Label>
+                    <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=I1r, Mode=TwoWay}"/>
+                    <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А - Номинальный ток первичной обмотки</Label>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I0:</Label>
+                    <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=I0, Mode=TwoWay}"/>
+                    <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А - Ток холостого хода</Label>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">P0:</Label>
+                    <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=P0, Mode=TwoWay}"/>
+                    <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Вт - Мощность холостого хода</Label>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">U1кз:</Label>
+                    <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=U1sc, Mode=TwoWay}"/>
+                    <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">В - Напряжение короткого замыкания (при I1н)</Label>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding ElementName=FirstColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=SecondColumn, Path=Width}"/>
+                        <ColumnDefinition Width="{Binding ElementName=ThirdColumn, Path=Width}"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">Pкз:</Label>
+                    <TextBox Grid.Column="1" Margin="1" Text="{Binding Path=Psc, Mode=TwoWay}"/>
+                    <Label Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Вт - Мощность короткого замыкания (при I1н)</Label>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
                     <Button Grid.Column="0" Margin="3" IsDefault="True" Command="vm:CalcParamFromDataSheetViewModel.CalcParamCommand">Посчитать параметры</Button>
                     <Button Grid.Column="1" Margin="3" IsCancel="True" Command="vm:CalcParamFromDataSheetViewModel.CancleCommand">Отмена</Button>
-                    </Grid>
-                </StackPanel>
+                </Grid>
+            </StackPanel>
         </Border>
-
     </Grid>
 </Window>
