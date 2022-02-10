@@ -8,32 +8,18 @@ namespace TransformExtChar.Model
     public class TransformerDatasheetSpecifications
     {
         #region Property
-        // только геттеры, потому что на паспортные данные могут ссылаться трансформаторы
-        // если паспортные данные изменятся, то не будут соответствовать трансформатору, ссылающемуся на них
-        // можно отслеживать созданные трансформаторы и обнулять тогда ссылки, но это сложно
-        public double U1_Rated { get; }
-        public double U2_Rated { get; }
-        public double I1_Rated { get; }
-        public double I1_Unload { get; }
-        public double P_Unload { get; }
-        public double U1_ShortCircuit { get; } // при номинальном токе первичное обмотки
-        public double P_ShortCircuit { get; }
+        public double U1_Rated { get; set; }
+        public double U2_Rated { get; set; }
+        public double I1_Rated { get; set; }
+        public double I1_Unload { get; set; }
+        public double P_Unload { get; set; }
+        public double U1_ShortCircuit { get; set; } // при номинальном токе первичное обмотки
+        public double P_ShortCircuit { get; set; }
         #endregion
 
-        public TransformerDatasheetSpecifications(double U1_Rated, double U2_Rated, double I1_Rated, double I1_Unload, double P_Unload,
-                                                  double U1_ShortCircuit, double P_ShortCircuit)
+        public bool TryGetEquivalentCurcuitParameters(out (Complex Zm, Complex Z1, Complex Z2_Сorrected, double K) equivalentCurcuitParameters)
         {
-            this.U1_Rated = U1_Rated;
-            this.U2_Rated = U2_Rated;
-            this.I1_Rated = I1_Rated;
-            this.I1_Unload = I1_Unload;
-            this.P_Unload = P_Unload;
-            this.U1_ShortCircuit = U1_ShortCircuit;
-            this.P_ShortCircuit = P_ShortCircuit;
-        }
-        public bool TryGetTransformerParameters(out (Complex Zm, Complex Z1, Complex Z2_Сorrected, double K) transformerParameters)
-        {
-            transformerParameters = (0, 0, 0, 0);
+            equivalentCurcuitParameters = (0, 0, 0, 0);
             if (U1_Rated <= 0 || U2_Rated <= 0 || I1_Unload <= 0 || I1_Rated <= 0 || U1_ShortCircuit <= 0 || U1_Rated < U1_ShortCircuit) return false;
 
             double Z0 = U1_Rated / I1_Unload;                               //полное сопротивление намагничивающей ветви
@@ -54,11 +40,9 @@ namespace TransformExtChar.Model
             Complex Z1 = new Complex(R12, X12);
             Complex Z2_Corrected = new Complex(R12, X12);
 
-            transformerParameters = (Zm, Z1, Z2_Corrected, K);
+            equivalentCurcuitParameters = (Zm, Z1, Z2_Corrected, K);
             return true;
         }
-
     }
-
 }
 

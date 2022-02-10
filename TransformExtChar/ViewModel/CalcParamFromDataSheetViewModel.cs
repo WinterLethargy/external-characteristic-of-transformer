@@ -2,40 +2,105 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using System.Windows;
 using System.Windows.Input;
+using TransformExtChar.Infrastructure;
+using TransformExtChar.Infrastructure.Command;
 using TransformExtChar.Model;
 
 namespace TransformExtChar.ViewModel
 {
-    class CalcParamFromDataSheetViewModel : ViewModel
+    internal class CalcParamFromDataSheetViewModel : OnPropertyChangedClass
     {
         #region Команды
-        private static RoutedCommand _CalcParam;
-        public static RoutedCommand CalcParamCommand { get { return _CalcParam; } }
 
-        private static RoutedCommand _Cancle;
-        public static RoutedCommand CancleCommand { get { return _Cancle; } }
+        #region Ok
+        public ICommand OkCommand { get; }
+
+        private void Ok_Execute(object p)
+        {
+            MessageBus.Send(MessageEnum.CalcParamFromDataSheet_Close);
+
+            if (!TrySetMainWindowFields())
+                MessageBox.Show("Такого трансформатора не может быть!", "Ошибка расчета", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        public bool TrySetMainWindowFields()
+        {
+            if (TryCalcParam(out var param))
+            {
+                UpdatePreview();
+
+                EquivalentCurcuitVM.Rm = param.Zm.Real;
+                EquivalentCurcuitVM.Xm = param.Zm.Imaginary;
+                EquivalentCurcuitVM.R1 = param.Z1.Real;
+                EquivalentCurcuitVM.X1 = param.Z1.Imaginary;
+                EquivalentCurcuitVM.R2 = param.Z2_Сorrected.Real;
+                EquivalentCurcuitVM.X2 = param.Z2_Сorrected.Imaginary;
+                EquivalentCurcuitVM.K = param.K;
+                ModeParametersVM.U1 = U1r;
+                ModeParametersVM.I2_start = 0;
+                ModeParametersVM.I2_end = 1.1 * I1r;  // выражение будет разное в зависимости от того, нужен приведенный ток вторичной обмотки или 
+                                          // реальный. Здесь посчитано 110% от номинального приведённого тока вторичной обмотки
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        internal bool TryCalcParam(out (Complex Zm, Complex Z1, Complex Z2_Сorrected, double K) param)
+        {
+            var specifications = new TransformerDatasheetSpecifications 
+            {
+                U1_Rated = U1r,
+                U2_Rated = U2r,
+                I1_Rated = I1r,
+                I1_Unload = I0,
+                P_Unload = P0,
+                U1_ShortCircuit = U1sc,
+                P_ShortCircuit = Psc
+            };
+            return specifications.TryGetEquivalentCurcuitParameters(out param);
+        }
+        private void UpdatePreview()
+        {
+            PreviewDataSheet.U1r = U1r;
+            PreviewDataSheet.U2r = U2r;
+            PreviewDataSheet.I1r = I1r;
+            PreviewDataSheet.I0 = I0;
+            PreviewDataSheet.P0 = P0;
+            PreviewDataSheet.U1sc = U1sc;
+            PreviewDataSheet.Psc = Psc;
+        }
         #endregion
 
-        static CalcParamFromDataSheetViewModel()
+        #region Cancel
+        public ICommand CancleCommand { get; }
+
+        private void Cancle_Execute(object p)
         {
-            _CalcParam = new RoutedCommand("CalcParam", typeof(TransExternalCharViewModel));
-            _Cancle = new RoutedCommand("Cancle", typeof(TransExternalCharViewModel));
+            MessageBus.Send(MessageEnum.CalcParamFromDataSheet_Close);
         }
+        #endregion
+        
+        #endregion
 
         public CalcParamFromDataSheetViewModel()
         {
-            U1r = Cash.U1r;
-            U2r = Cash.U2r;
-            I1r = Cash.I1r;
-            I0 = Cash.I0;
-            P0 = Cash.P0;
-            U1sc = Cash.U1sc;
-            Psc = Cash.Psc;
+            U1r = PreviewDataSheet.U1r;
+            U2r = PreviewDataSheet.U2r;
+            I1r = PreviewDataSheet.I1r;
+            I0 = PreviewDataSheet.I0;
+            P0 = PreviewDataSheet.P0;
+            U1sc = PreviewDataSheet.U1sc;
+            Psc = PreviewDataSheet.Psc;
+
+            OkCommand = new RelayCommand(Ok_Execute);
+            CancleCommand = new RelayCommand(Cancle_Execute);
         }
 
         #region Параметры
-        private static (double U1r, double U2r, double I1r, double I0, double P0, double U1sc, double Psc) Cash = (220, 115, 7.3, 0.76, 26, 10, 72);
+        private static (double U1r, double U2r, double I1r, double I0, double P0, double U1sc, double Psc) PreviewDataSheet = (220, 115, 7.3, 0.76, 26, 10, 72);
 
         private double _U1r;
         public double U1r { get => _U1r; set => Set(ref _U1r, value); }
@@ -59,44 +124,7 @@ namespace TransformExtChar.ViewModel
         public double Psc { get => _Psc; set => Set(ref _Psc, value); }
         #endregion
 
-        internal bool TryCalcParam(out (Complex Zm, Complex Z1, Complex Z2_Сorrected, double K) param)
-        {
-            var specifications = new TransformerDatasheetSpecifications(U1r, U2r, I1r, I0, P0, U1sc, Psc);
-            return specifications.TryGetTransformerParameters(out param);
-        }
-
-        private void UpdateCash()
-        {
-            Cash.U1r = U1r;
-            Cash.U2r = U2r;
-            Cash.I1r = I1r;
-            Cash.I0 = I0;
-            Cash.P0 = P0;
-            Cash.U1sc = U1sc;
-            Cash.Psc = Psc;
-        }
-
-        public bool TryGetTransExternalCharWindowFields(out (Complex Zm, Complex Z1, Complex Z2_Сorrected, double K, double U1, double I2_start, double I2_end) fields)
-        {
-            if(TryCalcParam(out var param))
-            {
-                UpdateCash();
-
-                fields.Zm = param.Zm;
-                fields.Z1 = param.Z1;
-                fields.Z2_Сorrected = param.Z2_Сorrected;
-                fields.K = param.K;
-                fields.U1 = U1r;
-                fields.I2_start = 0;
-                fields.I2_end = 1.1 * I1r;// выражение будет разное в зависимости от того, нужен приведенный ток вторичной обмотки или 
-                                          // реальный. Здесь посчитано 110% от номинального приведённого тока вторичной обмотки
-                return true;
-            }
-            else
-            {
-                fields = (0, 0, 0, 0, 0, 0, 0);
-                return false;
-            }
-        }
+        public EquivalentCurcuitViewModel EquivalentCurcuitVM { get; set; }
+        public ModeParametersViewModel ModeParametersVM { get; set; }
     }
 }

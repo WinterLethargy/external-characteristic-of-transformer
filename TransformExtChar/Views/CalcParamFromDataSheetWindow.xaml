@@ -6,14 +6,13 @@
         xmlns:vm="clr-namespace:TransformExtChar.ViewModel"
         xmlns:local="clr-namespace:TransformExtChar"
         mc:Ignorable="d"
+        Loaded="Window_Loaded"
+        Unloaded="Window_Unloaded"
+        WindowStartupLocation="CenterOwner"
         Title="Паспортные данные трансформатора" MaxWidth="500" ResizeMode="CanMinimize" SizeToContent="Height">
     <Window.DataContext>
         <vm:CalcParamFromDataSheetViewModel/>
     </Window.DataContext>
-    <Window.CommandBindings>
-        <CommandBinding Command="vm:CalcParamFromDataSheetViewModel.CalcParamCommand" Executed="CalcParam"/>
-        <CommandBinding Command="vm:CalcParamFromDataSheetViewModel.CancleCommand" Executed="Cancle"/>
-    </Window.CommandBindings>
     <Grid>
         <Border Grid.Row="0" Grid.Column="0" Margin="3" BorderThickness="3" BorderBrush="Gray" CornerRadius="7" Background="LightGray">
             <!--Поля ввода паспортных данных-->
@@ -93,8 +92,8 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Margin="3" IsDefault="True" Command="vm:CalcParamFromDataSheetViewModel.CalcParamCommand">Посчитать параметры</Button>
-                    <Button Grid.Column="1" Margin="3" IsCancel="True" Command="vm:CalcParamFromDataSheetViewModel.CancleCommand">Отмена</Button>
+                    <Button Grid.Column="0" Margin="3" IsDefault="True" Command="{Binding OkCommand}">Посчитать параметры</Button>
+                    <Button Grid.Column="1" Margin="3" IsCancel="True" Command="{Binding CancleCommand}">Отмена</Button>
                 </Grid>
             </StackPanel>
         </Border>

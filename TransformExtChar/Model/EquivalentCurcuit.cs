@@ -6,88 +6,30 @@ using System.Threading.Tasks;
 
 namespace TransformExtChar.Model
 {
-    public class Transformer
+    public class EquivalentCurcuit
     {
-        #region Parameters
-        private Complex _Zm;
+        #region Параметры схемы замещения
 
-        public Complex Zm
-        {
-            get { return _Zm; }
-            set
-            {
-                if (_Zm == value) return;
-                _dataSheet = null;
-                _Zm = value;
-            }
-        }
-
-        private Complex _Z1;
-
-        public Complex Z1
-        {
-            get { return _Z1; }
-            set
-            {
-                if (_Z1 == value) return;
-                _dataSheet = null;
-                _Z1 = value;
-            }
-        }
-
-        private Complex _Z2_Сorrected;
-
-        public Complex Z2_Сorrected
-        {
-            get { return _Z2_Сorrected; }
-            set
-            {
-                if (_Z2_Сorrected == value) return;
-                _dataSheet = null;
-                _Z2_Сorrected = value;
-            }
-        }
-
-        private double _K;
-
-        public double K
-        {
-            get { return _K; }
-            set
-            {
-                if (_K == value) return;
-                _dataSheet = null;
-                _K = value;
-            }
-        }
-
-        private TransformerDatasheetSpecifications _dataSheet;
+        public Complex Zm { get; set; }
+        public Complex Z1 { get; set; }
+        public Complex Z2_Сorrected { get; set; }
+        public double K { get; set; }
 
         #endregion
 
         #region constructors
-    public Transformer()
+        public EquivalentCurcuit() { } // из-за определения конструктора с параметрами конструктор без параметров нужно создать явно
+        public EquivalentCurcuit(TransformerDatasheetSpecifications specifications)
         {
-
-        }
-        public Transformer(TransformerDatasheetSpecifications specifications)
-        {
-            if (specifications.TryGetTransformerParameters(out var parameters)) // иначе все параметры будут инициализированы нулями
+            if (specifications.TryGetEquivalentCurcuitParameters(out var parameters)) // иначе все параметры будут инициализированы нулями
             {
-                _dataSheet = specifications;
-                _Zm = parameters.Zm;
-                _Z1 = parameters.Z1;
-                _Z2_Сorrected = parameters.Z2_Сorrected;
-                _K = parameters.K;
+                Zm = parameters.Zm;
+                Z1 = parameters.Z1;
+                Z2_Сorrected = parameters.Z2_Сorrected;
+                K = parameters.K;
             }
         }
         #endregion
-
-        public bool TryGetDataSheet(out TransformerDatasheetSpecifications specifications)
-        {
-            specifications = _dataSheet;
-            return _dataSheet == null ? false : true;
-        }
 
         public Task<List<VCData>> GetExternalCharacteristicAsync(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0,
                                                       double U1 = 0, double I2_step = 0.01)
@@ -105,23 +47,21 @@ namespace TransformExtChar.Model
         {
             if (I2_correctedStart < 0 || I2_correctedEnd < 0 || U1 < 0 || I2_step <= 0) return new List<VCData>();
 
-            if (fi2_rad > Math.PI / 2 || fi2_rad < -Math.PI / 2) return new List<VCData>();
+            if (fi2_rad > Math.PI / 2 || fi2_rad < -Math.PI / 2) return new List<VCData>(); // угол нагрузки лежит в пределах +-PI/2
 
-            bool isDataSheetExists = TryGetDataSheet(out TransformerDatasheetSpecifications specifications);
+            if (U1 == 0) U1 = 220; //как будто включили в розетку
 
-            if (U1 == 0) U1 = isDataSheetExists ? specifications.U1_Rated : 220; //как будто включили в розетку
-
-            if (I2_correctedStart > I2_correctedEnd)
+            if (I2_correctedStart > I2_correctedEnd)    // если перепутаны начало и конец расчетного интервала, то поменять их местами
             {
                 double temp = I2_correctedEnd;
                 I2_correctedEnd = I2_correctedStart;
                 I2_correctedStart = temp;
             }
 
-            if (I2_correctedEnd == 0) I2_correctedEnd = isDataSheetExists ? specifications.I1_Rated * K * 1.1 : 0;
-
-            if (I2_correctedEnd == 0) return GetFullExternalCharacteristic(fi2_rad, U1, I2_step);
-
+            if (I2_correctedEnd == 0) return ComputeExternalCharacteristicWhile(fi2_rad, 0, U1, I2_step, I2_corectCurrent => true); 
+                                                                                                  // если начало и конец расчетного интервала совпадают
+                                                                                                  // на 0, то вернуть характиристику от холостого хода
+                                                                                                  // до короткого замыкания
             return ComputeExternalCharacteristicWhile(fi2_rad, I2_correctedStart, U1, I2_step, I2_corectCurrent => I2_corectCurrent < I2_correctedEnd);
         }
 
@@ -131,9 +71,7 @@ namespace TransformExtChar.Model
 
             if (fi2_rad > Math.PI / 2 || fi2_rad < -Math.PI / 2) return new List<VCData>();
 
-            bool isDataSheetExists = TryGetDataSheet(out var specifications);
-
-            if (U1 == 0) U1 = isDataSheetExists ? specifications.U1_Rated : 220; //как будто включили в розетку
+            if (U1 == 0) U1 = 220; //как будто включили в розетку
 
             return ComputeExternalCharacteristicWhile(fi2_rad, 0, U1, I2_step, I2_corectCurrent => true);
         }
@@ -141,11 +79,13 @@ namespace TransformExtChar.Model
         private List<VCData> ComputeExternalCharacteristicWhile(double fi2_rad, double I2_correctedStart,
                                                       double U1, double I2_step, Predicate<double> predicate)
         {
-            if (Zm == 0) return new List<VCData>();
+            var ExternalCharacteristic = new List<VCData>();
 
+            if (Zm == 0) return ExternalCharacteristic;         // трансформатор не передает энергию
+                                                                // не получится посчитать угол напряжения на нагрузке
             Complex Z1Zm_sum = Z1 + Zm;
             
-            if (Z1Zm_sum == 0) return new List<VCData>();
+            if (Z1Zm_sum == 0) return ExternalCharacteristic;   // находится в знаменателе нескольких выражений
 
             Complex Za = -Zm / Z1Zm_sum;
             Complex Zb = -Z2_Сorrected - Zm + Zm * Zm / Z1Zm_sum;
@@ -155,12 +95,11 @@ namespace TransformExtChar.Model
 
             double currentI2_corrected = I2_correctedStart;
 
-            var ExternalCharacteristic = new List<VCData>();
-            var ExternalCharacteristicReverseBrunch = new LinkedList<(double magnitude, double psiI2)>();
-
+            var ExternalCharacteristicReverseBrunch = new LinkedList<(double magnitude, double psiI2)>(); // здесь будут точки тех режимов,
+                                                                                                          // когда один ток реализуется при разных напряжениях
             double b_less_fi2 = Zb.Phase - fi2_rad;
-            bool isPositive = b_less_fi2 > 0 ? true : false;
-
+            bool isPositive = b_less_fi2 > 0 ? true : false;    // лежат треугольники в верхней или нижней полуплоскости
+                                                                // нужно для проверки сопряженных тупых углов напряжения нагрузки
 
             while (predicate(currentI2_corrected))
             {
@@ -168,24 +107,24 @@ namespace TransformExtChar.Model
                 if (double.IsNaN(psiU2)) break;
 
                 double psiI2 = psiU2 - fi2_rad;
-                conjugateAngleChek(isPositive, psiU2);
+                conjugateAngleCheсk(isPositive, psiU2);
 
                 Complex I2_correctedComplex = Complex.FromPolarCoordinates(currentI2_corrected, psiI2);
 
                 Complex U2_CorrectedComplex = ZaU1_mult + Zb * I2_correctedComplex;
                 Complex Z_loadCorrected = U2_CorrectedComplex / I2_correctedComplex;
 
-                if (Math.Abs(Z_loadCorrected.Phase - fi2_rad) > 1E-10) break; // фаза изменилась на 180 градусов (не пойму почему так происходит)
-
-
-
+                if (Math.Abs(Z_loadCorrected.Phase - fi2_rad) > 1E-10) break; // алгоритм всё хорошо считает от холостого хода
+                                                                              // до короткого замыкания, но потом меняет фазу на 180 градусов
+                                                                              // и продолжает считать точки с сопротивлением нагрузки fi2 + 180
+                                                                              // до тех пор пока не берётся арксинус числа большего 1 ранее в коде
                 AddPoint(ref I2_correctedComplex, ref U2_CorrectedComplex, ref Z_loadCorrected);
 
                 currentI2_corrected += I2_step;
             }
 
-            foreach (var I2_corrected in ExternalCharacteristicReverseBrunch)
-            {
+            foreach (var I2_corrected in ExternalCharacteristicReverseBrunch) // теперь считать точки обратной ветви. если эти точки считать сразу, то
+            {                                                                 // не получится начертить красивый график одной линией
                 Complex I2_correctedComplex = Complex.FromPolarCoordinates(I2_corrected.magnitude, I2_corrected.psiI2);
 
                 Complex U2_CorrectedComplex = ZaU1_mult + Zb * I2_correctedComplex;
@@ -196,7 +135,7 @@ namespace TransformExtChar.Model
 
             return ExternalCharacteristic;
 
-            void conjugateAngleChek(bool isPositive, double psiU2)
+            void conjugateAngleCheсk(bool isPositive, double psiU2)
             {
                 double one = isPositive ? 1 : -1;
 

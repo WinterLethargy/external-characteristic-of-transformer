@@ -9,16 +9,12 @@
         xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
         x:Name="thisWindow"
+        Loaded="Window_Loaded"
+        Unloaded="Window_Unloaded"
         Title="Внешняя характеристика трансформатора" Height="450" Width="800" MinWidth="770" MinHeight="600">
     <Window.DataContext>
         <vm:TransExternalCharViewModel/>
     </Window.DataContext>
-    <Window.CommandBindings>
-        <CommandBinding Command="vm:TransExternalCharViewModel.CalcExtCharCommand" Executed="CalcExtChar"/>
-        <CommandBinding Command="vm:TransExternalCharViewModel.CalcParamFromDataSheetCommand" Executed="CalcParamFromDataSheet"/>
-        <CommandBinding Command="local:TransExternalCharWindow.FixSeriesCommand" Executed="FixSeries_Executed" CanExecute="FixSeries_CanExecuted"/>
-        <CommandBinding Command="local:TransExternalCharWindow.DeleteHiddenSeriesCommand" Executed="DeleteHiddenSeries_Execute" CanExecute="DeleteHiddenSeries_CanExecute"/>
-    </Window.CommandBindings>
     <!--Сетка с полями ввода, картинкой и плоттером-->
     <Grid Background="LightGray">
         <Grid.ColumnDefinitions>
@@ -39,132 +35,139 @@
                 <ScrollViewer Margin="3">
                     <!--Поля ввода параметров схемы замещения и кнопка "построить из паспортных данных-->
                     <StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">U1:</Label>
-                            <TextBox x:Name="U1TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=U1, Mode=TwoWay}"/>
-                            <Label x:Name="U1Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">В</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="6*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">Fi2:</Label>
-                            <TextBox x:Name="Fi2TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=Fi2, Mode=TwoWay}"/>
-                            <Label x:Name="Fi2Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Градусы</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="6*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I2 н:</Label>
-                            <TextBox x:Name="I2_startTextBox" Grid.Column="1" Margin="1" Text="{Binding Path=I2_start, Mode=TwoWay}"/>
-                            <Label x:Name="I2_startLabel" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А (начальный ток)</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="6*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I2 к:</Label>
-                            <TextBox x:Name="I2_endTextBox" Grid.Column="1" Margin="1" Text="{Binding Path=I2_end, Mode=TwoWay}"/>
-                            <Label x:Name="I2_endLabel" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А (конечный ток)</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="6*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I2 ш:</Label>
-                            <TextBox x:Name="I2_stepTextBox" Grid.Column="1" Margin="1" Text="{Binding Path=I2_step, Mode=TwoWay}"/>
-                            <Label x:Name="I2_stepLabel" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А (шаг)</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">K:</Label>
-                            <TextBox x:Name="KTextBox" Grid.Column="1"  Margin="1" Text="{Binding Path=K, Mode=TwoWay}"/>
-                            <Label x:Name="KLabel" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left"></Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">R1:</Label>
-                            <TextBox x:Name="R1TextBox" Grid.Column="1"  Margin="1" Text="{Binding Path=R1, Mode=TwoWay}"/>
-                            <Label x:Name="R1Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">X1:</Label>
-                            <TextBox x:Name="X1TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=X1, Mode=TwoWay}"/>
-                            <Label x:Name="X1Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">R2:</Label>
-                            <TextBox x:Name="R2TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=R2, Mode=TwoWay}"/>
-                            <Label x:Name="R2Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">X2:</Label>
-                            <TextBox x:Name="X2TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=X2, Mode=TwoWay}"/>
-                            <Label x:Name="X2Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">Rm:</Label>
-                            <TextBox x:Name="R0TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=Rm, Mode=TwoWay}"/>
-                            <Label x:Name="R0Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">Xm:</Label>
-                            <TextBox x:Name="X0TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=Xm, Mode=TwoWay}"/>
-                            <Label x:Name="X0Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
-                        </Grid>
-                        <Button MaxHeight="30" HorizontalAlignment="Center" Command="vm:TransExternalCharViewModel.CalcParamFromDataSheetCommand">Посчитать из паспортных данных</Button>
+                        <!--Костыль, чтобы привязать Textbox к нужному контексту-->
+                        <StackPanel DataContext="{Binding ModeParametersVM}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">U1:</Label>
+                                <TextBox x:Name="U1TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=U1, Mode=TwoWay}" />
+                                <Label x:Name="U1Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">В</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">Fi2:</Label>
+                                <TextBox x:Name="Fi2TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=Fi2, Mode=TwoWay}"/>
+                                <Label x:Name="Fi2Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Градусы</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I2 н:</Label>
+                                <TextBox x:Name="I2_startTextBox" Grid.Column="1" Margin="1" Text="{Binding Path=I2_start, Mode=TwoWay}"/>
+                                <Label x:Name="I2_startLabel" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А (начальный ток)</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I2 к:</Label>
+                                <TextBox x:Name="I2_endTextBox" Grid.Column="1" Margin="1" Text="{Binding Path=I2_end, Mode=TwoWay}"/>
+                                <Label x:Name="I2_endLabel" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А (конечный ток)</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">I2 ш:</Label>
+                                <TextBox x:Name="I2_stepTextBox" Grid.Column="1" Margin="1" Text="{Binding Path=I2_step, Mode=TwoWay}"/>
+                                <Label x:Name="I2_stepLabel" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">А (шаг)</Label>
+                            </Grid>
+
+                        </StackPanel>
+                        <!--Костыль, чтобы привязать Textbox к нужному контексту-->
+                        <StackPanel DataContext="{Binding EquivalentCurcuitVM}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">K:</Label>
+                                <TextBox x:Name="KTextBox" Grid.Column="1"  Margin="1" Text="{Binding Path=K, Mode=TwoWay}"/>
+                                <Label x:Name="KLabel" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left"></Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">R1:</Label>
+                                <TextBox x:Name="R1TextBox" Grid.Column="1"  Margin="1" Text="{Binding Path=R1, Mode=TwoWay}"/>
+                                <Label x:Name="R1Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">X1:</Label>
+                                <TextBox x:Name="X1TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=X1, Mode=TwoWay}"/>
+                                <Label x:Name="X1Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">R2:</Label>
+                                <TextBox x:Name="R2TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=R2, Mode=TwoWay}"/>
+                                <Label x:Name="R2Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">X2:</Label>
+                                <TextBox x:Name="X2TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=X2, Mode=TwoWay}"/>
+                                <Label x:Name="X2Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">Rm:</Label>
+                                <TextBox x:Name="R0TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=Rm, Mode=TwoWay}"/>
+                                <Label x:Name="R0Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" MinWidth="30" HorizontalAlignment="Right">Xm:</Label>
+                                <TextBox x:Name="X0TextBox" Grid.Column="1" Margin="1" Text="{Binding Path=Xm, Mode=TwoWay}"/>
+                                <Label x:Name="X0Label" Grid.Column="2" MinWidth="30" HorizontalAlignment="Left">Ом</Label>
+                            </Grid>
+                        </StackPanel>
+                        <Button MaxHeight="30" HorizontalAlignment="Center" Command="{Binding CalcParamFromDataSheetCommand}">Посчитать из паспортных данных</Button>
                     </StackPanel>
-                </ScrollViewer> 
+                </ScrollViewer>
             </Border>
 
-            <Button Grid.Row="1" Margin="3" MaxHeight="30" HorizontalAlignment="Stretch" Command="vm:TransExternalCharViewModel.CalcExtCharCommand">Построить внешнюю характеристику</Button>
+            <Button Grid.Row="1" Margin="3" MaxHeight="30" HorizontalAlignment="Stretch" Command="{Binding CalcExtCharCommand}">Построить внешнюю характеристику</Button>
         </Grid>
         
         <!--Изображение схемы замещения-->
@@ -177,12 +180,13 @@
         <!--График-->
         <oxy:PlotView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5"
                       x:Name="PlotView"
-                      Model="{Binding ElementName=thisWindow, Path=Plotter}">
+                      DataContext="{Binding PlotterVM}"
+                      Model="{Binding Plotter}">
             <oxy:PlotView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Сбросить оси" Click="RefreshAxis"/>
-                    <MenuItem Header="Зафиксировать график" Command="local:TransExternalCharWindow.FixSeriesCommand"/>
-                    <MenuItem Header="Удалить скрытые графики" Command="local:TransExternalCharWindow.DeleteHiddenSeriesCommand"/>
+                    <MenuItem Header="Зафиксировать график" Command="{Binding FixSeriesCommand}"/>
+                    <MenuItem Header="Удалить скрытые графики" Command="{Binding DeleteHiddenSeriesCommand}"/>
                 </ContextMenu>
             </oxy:PlotView.ContextMenu>
         </oxy:PlotView>
