@@ -187,6 +187,7 @@
                     <MenuItem Header="Сбросить оси" Click="RefreshAxis"/>
                     <MenuItem Header="Зафиксировать график" Command="{Binding FixSeriesCommand}"/>
                     <MenuItem Header="Удалить скрытые графики" Command="{Binding DeleteHiddenSeriesCommand}"/>
+                    <MenuItem Header="Загрузить график из CSV" Command="{Binding AddSeriesFromFileCommand}"/>
                 </ContextMenu>
             </oxy:PlotView.ContextMenu>
         </oxy:PlotView>

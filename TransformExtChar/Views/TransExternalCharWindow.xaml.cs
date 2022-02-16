@@ -42,7 +42,7 @@ namespace TransformExtChar
         {
             InitializeComponent();
         }
-        private void Receive(object message)
+        private void Receive(object message, object p)
         {
             if (!(message is MessageEnum mes))
             {
@@ -57,7 +57,7 @@ namespace TransformExtChar
                     case MessageEnum.InvalidatePlot_UpdateDataFalse:  UpdatePlotter(false, false); break;
                     case MessageEnum.InvalidatePlot_UpdateDataTrue: UpdatePlotter(false, true); break;
                     case MessageEnum.CalcParamFromDataSheet_Open: OpenCalcParamFromDataSheetWindow(); break;
-                    case MessageEnum.AddFixedSeries_Open: OpenAddSeriesWindow(mes); break;
+                    case MessageEnum.AddFixedSeries_Open: OpenAddSeriesWindow(mes, p); break;
                     default: break;
                 }
             }
@@ -83,9 +83,9 @@ namespace TransformExtChar
 
             dialog.ShowDialog();
         }
-        private void OpenAddSeriesWindow(MessageEnum fixedOrUsers)
+        private void OpenAddSeriesWindow(MessageEnum fixedOrUsers, object p)
         {
-            var dialog = new AddSeriesWindow(fixedOrUsers) { Owner = this };
+            var dialog = new AddSeriesWindow() { Owner = this };
 
             var dialogVM = (AddSeriesVM)dialog.DataContext;
             var thisVM = (TransExternalCharViewModel)DataContext;        // нельзя в конструкторе, потому что Owner на тот момент ещё не инициализировано
@@ -94,6 +94,7 @@ namespace TransformExtChar
 
             dialog.ShowDialog();
         }
+
     }
 }
 

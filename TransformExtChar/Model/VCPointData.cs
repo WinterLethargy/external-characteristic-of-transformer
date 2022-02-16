@@ -5,10 +5,9 @@ using System.Text;
 
 namespace TransformExtChar.Model
 {
-    public struct VCData
+    public struct VCPointData
     {
         public double Current { get; set; }
         public double Voltage { get; set; }
-        public Complex Z_load { get; set; }
     }
 }

@@ -13,6 +13,7 @@ using System.Windows.Input;
 using TransformExtChar.Infrastructure;
 using TransformExtChar.Infrastructure.Command;
 using TransformExtChar.Model;
+using TransformExtChar.Services;
 using TransformExtChar.Views;
 
 namespace TransformExtChar.ViewModel
@@ -25,12 +26,12 @@ namespace TransformExtChar.ViewModel
         public ICommand CalcExtCharCommand { get; }
 
         async private void CalcExtChar_Executed(object p)
-        {
-            PlotterVM.TransExtChar = await Task.Run(() => CalcExtChar());   // посчитать график
-            PlotterVM.UpdatePlotter();                           // обновить его отображение
+        { 
+            var newCharacteristic = await Task.Run(() => CalcExtChar());
+            PlotterVM.UpdateEditedSeries(newCharacteristic);   // посчитать график
         }
 
-        private List<VCData> CalcExtChar()
+        private List<VCPointData> CalcExtChar()
         {
             var equivalentCurcuit = EquivalentCurcuitVM.GetEquivalentCurcuit();
             const double toRad = Math.PI / 180;

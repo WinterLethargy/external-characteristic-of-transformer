@@ -19,10 +19,9 @@ namespace TransformExtChar.Views
     /// </summary>
     public partial class AddSeriesWindow : Window
     {
-        public AddSeriesWindow(MessageEnum fixedOrUsers)
+        public AddSeriesWindow()
         {
             InitializeComponent();
-            DataContext = new AddSeriesVM(fixedOrUsers);
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -37,7 +36,7 @@ namespace TransformExtChar.Views
             text.SelectAll();
             text.Focus();
         }
-        private void Close(object message)
+        private void Close(object message, object p)
         {
             if (!(message is MessageEnum mes))
                 return;

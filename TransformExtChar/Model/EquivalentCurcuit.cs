@@ -31,23 +31,23 @@ namespace TransformExtChar.Model
         }
         #endregion
 
-        public Task<List<VCData>> GetExternalCharacteristicAsync(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0,
+        public Task<List<VCPointData>> GetExternalCharacteristicAsync(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0,
                                                       double U1 = 0, double I2_step = 0.01)
         {
             return Task.Run(() => GetExternalCharacteristic(fi2_rad, I2_correctedStart, I2_correctedEnd, U1, I2_step));
         }
 
-        public Task<List<VCData>> GetFullExternalCharacteristicAsync(double fi2_rad = 0, double U1 = 0, double I2_step = 0.1)
+        public Task<List<VCPointData>> GetFullExternalCharacteristicAsync(double fi2_rad = 0, double U1 = 0, double I2_step = 0.1)
         {
             return Task.Run(() => GetFullExternalCharacteristic(fi2_rad, U1, I2_step));
         }
 
-        public List<VCData> GetExternalCharacteristic(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0, 
+        public List<VCPointData> GetExternalCharacteristic(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0, 
                                                       double U1 = 0, double I2_step = 0.01)
         {
-            if (I2_correctedStart < 0 || I2_correctedEnd < 0 || U1 < 0 || I2_step <= 0) return new List<VCData>();
+            if (I2_correctedStart < 0 || I2_correctedEnd < 0 || U1 < 0 || I2_step <= 0) return new List<VCPointData>();
 
-            if (fi2_rad > Math.PI / 2 || fi2_rad < -Math.PI / 2) return new List<VCData>(); // угол нагрузки лежит в пределах +-PI/2
+            if (fi2_rad > Math.PI / 2 || fi2_rad < -Math.PI / 2) return new List<VCPointData>(); // угол нагрузки лежит в пределах +-PI/2
 
             if (U1 == 0) U1 = 220; //как будто включили в розетку
 
@@ -65,21 +65,21 @@ namespace TransformExtChar.Model
             return ComputeExternalCharacteristicWhile(fi2_rad, I2_correctedStart, U1, I2_step, I2_corectCurrent => I2_corectCurrent < I2_correctedEnd);
         }
 
-        public List<VCData> GetFullExternalCharacteristic(double fi2_rad = 0, double U1 = 0, double I2_step = 0.01)
+        public List<VCPointData> GetFullExternalCharacteristic(double fi2_rad = 0, double U1 = 0, double I2_step = 0.01)
         {
-            if (U1 < 0 || I2_step <= 0) return new List<VCData>();
+            if (U1 < 0 || I2_step <= 0) return new List<VCPointData>();
 
-            if (fi2_rad > Math.PI / 2 || fi2_rad < -Math.PI / 2) return new List<VCData>();
+            if (fi2_rad > Math.PI / 2 || fi2_rad < -Math.PI / 2) return new List<VCPointData>();
 
             if (U1 == 0) U1 = 220; //как будто включили в розетку
 
             return ComputeExternalCharacteristicWhile(fi2_rad, 0, U1, I2_step, I2_corectCurrent => true);
         }
 
-        private List<VCData> ComputeExternalCharacteristicWhile(double fi2_rad, double I2_correctedStart,
+        private List<VCPointData> ComputeExternalCharacteristicWhile(double fi2_rad, double I2_correctedStart,
                                                       double U1, double I2_step, Predicate<double> predicate)
         {
-            var ExternalCharacteristic = new List<VCData>();
+            var ExternalCharacteristic = new List<VCPointData>();
 
             if (Zm == 0) return ExternalCharacteristic;         // трансформатор не передает энергию
                                                                 // не получится посчитать угол напряжения на нагрузке
@@ -118,7 +118,7 @@ namespace TransformExtChar.Model
                                                                               // до короткого замыкания, но потом меняет фазу на 180 градусов
                                                                               // и продолжает считать точки с сопротивлением нагрузки fi2 + 180
                                                                               // до тех пор пока не берётся арксинус числа большего 1 ранее в коде
-                AddPoint(ref I2_correctedComplex, ref U2_CorrectedComplex, ref Z_loadCorrected);
+                AddPoint(ref I2_correctedComplex, ref U2_CorrectedComplex);
 
                 currentI2_corrected += I2_step;
             }
@@ -128,9 +128,8 @@ namespace TransformExtChar.Model
                 Complex I2_correctedComplex = Complex.FromPolarCoordinates(I2_corrected.magnitude, I2_corrected.psiI2);
 
                 Complex U2_CorrectedComplex = ZaU1_mult + Zb * I2_correctedComplex;
-                Complex Z_loadCorrected = U2_CorrectedComplex / I2_correctedComplex;
 
-                AddPoint(ref I2_correctedComplex, ref U2_CorrectedComplex, ref Z_loadCorrected);
+                AddPoint(ref I2_correctedComplex, ref U2_CorrectedComplex);
             }
 
             return ExternalCharacteristic;
@@ -146,13 +145,12 @@ namespace TransformExtChar.Model
                 if (secondAngle < Math.PI / 2 && secondAngle > 0) ExternalCharacteristicReverseBrunch.AddFirst((currentI2_corrected, psiI2));
             }
 
-            void AddPoint(ref Complex I2_corrected, ref Complex U2_corrected, ref Complex Z_loadCorrected)
+            void AddPoint(ref Complex I2_corrected, ref Complex U2_corrected)
             {
-                VCData data = new VCData
+                VCPointData data = new VCPointData
                 {
                     Current = I2_corrected.Magnitude,
-                    Voltage = U2_corrected.Magnitude,
-                    Z_load = Z_loadCorrected
+                    Voltage = U2_corrected.Magnitude
                 };
 
                 ExternalCharacteristic.Add(data);

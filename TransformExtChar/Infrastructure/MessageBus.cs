@@ -6,9 +6,9 @@ namespace TransformExtChar.Infrastructure
 {
     public static class MessageBus
     {
-        public static event Action<object> Bus;
+        public static event Action<object, object> Bus;
 
-        public static void Send(object data)
-            => Bus?.Invoke(data);
+        public static void Send(object message, object param = null)
+            => Bus?.Invoke(message, param);
     }
 }

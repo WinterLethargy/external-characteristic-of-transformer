@@ -31,7 +31,7 @@ namespace TransformExtChar.Views
         {
             MessageBus.Bus -= Close;
         }
-        private void Close(object message)
+        private void Close(object message, object p)
         {
             if (!(message is MessageEnum mes))
                 return;

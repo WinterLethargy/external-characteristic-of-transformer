@@ -2,6 +2,7 @@
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Windows.Input;
 using TransformExtChar.Infrastructure;
@@ -15,7 +16,6 @@ namespace TransformExtChar.ViewModel
 
         #region Ok
         public ICommand OkCommand { get; }
-
         private void Ok_Execute(object p) 
         {
             MessageBus.Send(MessageEnum.AddSeries_Close);
@@ -28,7 +28,6 @@ namespace TransformExtChar.ViewModel
 
         #region Cancel
         public ICommand CancleCommand { get; }
-
         private void Cancle_Execute(object p)
         {
             MessageBus.Send(MessageEnum.AddSeries_Close);
@@ -37,26 +36,15 @@ namespace TransformExtChar.ViewModel
 
         #endregion
 
-        public AddSeriesVM(MessageEnum fixedOrUsers)
+        public AddSeriesVM()
         {
-            switch (fixedOrUsers)
-            {
-                case MessageEnum.AddFixedSeries_Open:
-                    Title = $"Расчетная характеристика {CalcSeriesCounter}";
-                    break;
-                case MessageEnum.AddUsersSeries_Open:
-                    Title = $"Пользовательская характеристика {UsersSeriesCounter}";
-                    break;
-                default:
-                    break;
-            }
+            Title = $"Расчетная характеристика {CalcSeriesCounter}";
 
             OkCommand = new RelayCommand(Ok_Execute);
             CancleCommand = new RelayCommand(Cancle_Execute);
         }
 
         private static int CalcSeriesCounter { get; set; } = 1;
-        private static int UsersSeriesCounter { get; set; } = 1;
 
         private string _title;
         public string Title { get => _title; set => Set(ref _title, value); }

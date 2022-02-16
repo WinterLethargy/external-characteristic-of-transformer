@@ -4,13 +4,16 @@ using OxyPlot.Legends;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using TransformExtChar.Infrastructure;
 using TransformExtChar.Infrastructure.Command;
 using TransformExtChar.Model;
+using TransformExtChar.Services;
 
 namespace TransformExtChar.ViewModel
 {
@@ -27,6 +30,20 @@ namespace TransformExtChar.ViewModel
         private bool FixSeries_CanExecuted(object p)
         {
             return EditedSeries.Points.Count != 0 && EditedSeries.IsVisible == true;
+        }
+        public void FixSeries(string title)
+        {
+            LineSeries newSeries = new LineSeries                                           // создать новый график
+            {
+                Title = title,
+                TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
+            };
+
+            Plotter.Series.Remove(EditedSeries);                                            // удалить редактируемый график из плоттера
+            Plotter.Series.Add(newSeries);                                                  // добавить новый график в плоттер
+            newSeries.Points.AddRange(EditedSeries.Points);                                 // добавиь точки в новый график
+            EditedSeries.Points.Clear();                                                    // очистить редактируемый график, чтобы отключить команду
+            MessageBus.Send(MessageEnum.InvalidatePlot_UpdateDataFalse);
         }
         #endregion
 
@@ -53,25 +70,48 @@ namespace TransformExtChar.ViewModel
         }
         #endregion
 
+        #region Добавить график из файла
+        public ICommand AddSeriesFromFileCommand { get; }
+        private void AddSeriesFromFile_Execute(object p)
+        {
+            if (DataService.TryGetFileName(out string path))
+                if (DataService.TryOpenCSV(path, out var points))
+                    AddSeries(Path.GetFileName(path), points);
+        }
+        public void AddSeries(string title, List<VCPointData> points)
+        {
+            LineSeries newSeries = new LineSeries
+            {
+                Title = title,
+                TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
+            };
+
+            foreach (var point in points)
+            {
+                newSeries.Points.Add(new DataPoint(point.Current, point.Voltage));
+            }
+
+            Plotter.Series.Add(newSeries);
+
+            MessageBus.Send(MessageEnum.UpdatePlotter_UpdateDataTrue);
+        }
+        #endregion
+
         #endregion
 
         #region Свойства и поля
 
-        public List<VCData> TransExtChar { get; set; }
-
         private PlotModel _plotter;
         public PlotModel Plotter { get => _plotter; set => Set(ref _plotter, value); }
         private LineSeries EditedSeries { get; set; } // График, который будет изменяться при нажатии на "Построить..."
-        private LinearAxis UAxis { get; }
-        private LinearAxis IAxis { get; }
 
         #endregion
+
+        private DataService DataService { get; } = new DataService();
 
         public PlotterVM()
         {
             Plotter = CreatePlotModel();
-            UAxis = (LinearAxis)Plotter.Axes[0];
-            IAxis = (LinearAxis)Plotter.Axes[1];
             EditedSeries = new LineSeries
             {
                 Title = "Рассчетная характеристика",                        // отличитильные черты редактируемого графика - название и цвет
@@ -80,8 +120,8 @@ namespace TransformExtChar.ViewModel
             };
             FixSeriesCommand = new RelayCommand(FixSeries_Executed, FixSeries_CanExecuted);
             DeleteHiddenSeriesCommand = new RelayCommand(DeleteHiddenSeries_Execute, DeleteHiddenSeries_CanExecute);
+            AddSeriesFromFileCommand = new RelayCommand(AddSeriesFromFile_Execute);
         }
-
         private static PlotModel CreatePlotModel()
         {
             PlotModel pm = new PlotModel
@@ -118,51 +158,31 @@ namespace TransformExtChar.ViewModel
             pm.Legends.Add(l);
             return pm;
         }
-        async public void UpdatePlotter() 
+        async internal void UpdateEditedSeries(List<VCPointData> newSeries)
         {
-            if (TransExtChar.Count == 0)                                             // если введены некорректные данные и график содержит 0 точек
+            if (newSeries.Count == 0)                                                // если введены некорректные данные и график содержит 0 точек
             {                                                                        // то удалить график из плоттера, если он там есть (чтобы в легенде    
                 Plotter.Series.Remove(EditedSeries);                                 // не отображалось несуществующего графика)
                 MessageBus.Send(MessageEnum.InvalidatePlot_UpdateDataFalse);         // обновить плоттер                          
-                return;                                                              
-            }                                                                        
-                                                                                     
-            await UpdateExtCharSeriesAsync();                                        // обновить точки редактируемой серии (EqivalentCircit возвращает список,
+                return;
+            }
+
+            await UpdateEditedSeriesPointsAsync(newSeries);                          // обновить точки редактируемой серии (EqivalentCircit возвращает список,
                                                                                      // который нельзя просто вставить в серию плоттера из-за неподходящего типа)
             if (!Plotter.Series.Contains(EditedSeries))                              // если плоттер не содержит редактируемый график,
                 Plotter.Series.Add(EditedSeries);                                    // то добавить его
-                                                                                     
-            IAxis.MinimumRange = TransExtChar.Count > 1                              // нельзя приблизить больше, чем на шаг тока (избегаем подтормаживания)
-                                 ? TransExtChar[1].Current - TransExtChar[0].Current
-                                 : 1;                                       
-            UAxis.MinimumRange = TransExtChar[0].Voltage / 100000;                   // нельзя приблизить больше, чем в сто тысяч раз раз (избегаем подтормаживания)
-                                                                                     // про MaximumRange сложно что-то сказать
 
             MessageBus.Send(MessageEnum.UpdatePlotter_UpdateDataTrue);
         }
-        private Task UpdateExtCharSeriesAsync()
+        private Task UpdateEditedSeriesPointsAsync(List<VCPointData> newCharacteristic)
         {
             return Task.Run(() => {
                 EditedSeries.Points.Clear();
-                foreach (var point in TransExtChar)
+                foreach (var point in newCharacteristic)
                 {
                     EditedSeries.Points.Add(new DataPoint(point.Current, point.Voltage));
                 }
             });
-        }
-        public void FixSeries(string title)
-        {
-            LineSeries newSeries = new LineSeries                                           // создать новый график
-            {
-                Title = title,
-                TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
-            };
-
-            Plotter.Series.Remove(EditedSeries);                                            // удалить редактируемый график из плоттера
-            Plotter.Series.Add(newSeries);                                                  // добавить новый график в плоттер
-            newSeries.Points.AddRange(EditedSeries.Points);                                 // добавиь точки в новый график
-            EditedSeries.Points.Clear();                                                    // очистить редактируемый график, чтобы отключить команду
-            MessageBus.Send(MessageEnum.InvalidatePlot_UpdateDataFalse);
         }
     }
 }
