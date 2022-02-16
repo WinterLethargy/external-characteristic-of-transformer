@@ -181,13 +181,14 @@
         <oxy:PlotView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5"
                       x:Name="PlotView"
                       DataContext="{Binding PlotterVM}"
-                      Model="{Binding Plotter}">
+                      Model="{Binding Plotter}"
+                      AllowDrop="True" Drop="Plotter_Drop">
             <oxy:PlotView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Сбросить оси" Click="RefreshAxis"/>
                     <MenuItem Header="Зафиксировать график" Command="{Binding FixSeriesCommand}"/>
                     <MenuItem Header="Удалить скрытые графики" Command="{Binding DeleteHiddenSeriesCommand}"/>
-                    <MenuItem Header="Загрузить график из CSV" Command="{Binding AddSeriesFromFileCommand}"/>
+                    <MenuItem Header="Загрузить график из CSV" x:Name="AddSeriesFromFileMenuItem" Command="{Binding AddSeriesFromFileCommand}"/>
                 </ContextMenu>
             </oxy:PlotView.ContextMenu>
         </oxy:PlotView>

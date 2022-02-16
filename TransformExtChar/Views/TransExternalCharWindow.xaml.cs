@@ -95,6 +95,21 @@ namespace TransformExtChar
             dialog.ShowDialog();
         }
 
+        private void Plotter_Drop(object sender, DragEventArgs e)
+        {
+            var data = e.Data as DataObject;
+            if (data != null && data.ContainsFileDropList())
+            {
+                foreach (var file in data.GetFileDropList())
+                {
+                    //if(AddSeriesFromFileMenuItem.Command.CanExecute(new object()))    // сразу после запуска команда ещё не привязана
+                    //    AddSeriesFromFileMenuItem.Command.Execute(file);
+                    var plotterVM = ((TransExternalCharViewModel)DataContext).PlotterVM;
+                    if (plotterVM.AddSeriesFromFileCommand.CanExecute(new object()))
+                        plotterVM.AddSeriesFromFileCommand.Execute(file);
+                }
+            }
+        }
     }
 }
 

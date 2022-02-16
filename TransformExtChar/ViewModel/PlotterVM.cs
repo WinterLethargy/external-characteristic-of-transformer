@@ -1,12 +1,14 @@
-﻿using OxyPlot;
+﻿using Microsoft.Win32;
+using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Legends;
 using OxyPlot.Series;
+using OxyPlot.Wpf;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -72,23 +74,49 @@ namespace TransformExtChar.ViewModel
 
         #region Добавить график из файла
         public ICommand AddSeriesFromFileCommand { get; }
+        private bool IsAddSeriesFromFileExecuting;
+        private bool AddSeriesFromFile_CanExecute(object p) => !IsAddSeriesFromFileExecuting;
         private void AddSeriesFromFile_Execute(object p)
         {
-            if (DataService.TryGetFileName(out string path))
-                if (DataService.TryOpenCSV(path, out var points))
-                    AddSeries(Path.GetFileName(path), points);
+            if (p is string path)
+                Task.Run(() => AddSeriesFromFile(path));
+            else
+                Task.Run(() => AddSeriesFromFile());
         }
-        public void AddSeries(string title, List<VCPointData> points)
+        private void AddSeriesFromFile(string path = null)
         {
+            IsAddSeriesFromFileExecuting = true;
+
+            if (path != null && !Path.IsPathFullyQualified(path))   // если не нулл и полный путь, тогда без изменений
+                path = null;
+
+            if (DataService.TryOpenCSV(out var csvDocument, path))                              // метод учитывает path == null. тогда открывается OpenFoleDialog 
+                if (csvDocument.Headers[0].Equals("I", StringComparison.OrdinalIgnoreCase))
+                    foreach (var series in csvDocument.GetData())
+                        AddSeries(series.title, series.points);
+                else
+                {
+                    MessageBox.Show("Недопустимое форматирование!\nПервая колонка должна быть \"I\".", "Недопустимое форматирование!", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            IsAddSeriesFromFileExecuting = false;
+        }
+        public void AddSeries(string title, List<Point> points)
+        {
+            if (title.Length > 40)
+            {
+                title = title.Substring(0, 37) + "...";
+            }
             LineSeries newSeries = new LineSeries
             {
                 Title = title,
-                TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
+                TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}",
+                MarkerType = MarkerType.Circle,
+                MarkerSize = 2.5
             };
 
             foreach (var point in points)
             {
-                newSeries.Points.Add(new DataPoint(point.Current, point.Voltage));
+                newSeries.Points.Add(new DataPoint(point.X, point.Y));
             }
 
             Plotter.Series.Add(newSeries);
@@ -120,8 +148,10 @@ namespace TransformExtChar.ViewModel
             };
             FixSeriesCommand = new RelayCommand(FixSeries_Executed, FixSeries_CanExecuted);
             DeleteHiddenSeriesCommand = new RelayCommand(DeleteHiddenSeries_Execute, DeleteHiddenSeries_CanExecute);
-            AddSeriesFromFileCommand = new RelayCommand(AddSeriesFromFile_Execute);
+            AddSeriesFromFileCommand = new RelayCommand(AddSeriesFromFile_Execute, AddSeriesFromFile_CanExecute);
+            SavePDFCommand = new RelayCommand(SavePDF_Execute, SavePDF_CanExecute);
         }
+
         private static PlotModel CreatePlotModel()
         {
             PlotModel pm = new PlotModel
@@ -153,7 +183,8 @@ namespace TransformExtChar.ViewModel
                 LegendPlacement = LegendPlacement.Inside,
                 LegendPosition = LegendPosition.RightTop,
                 LegendBackground = OxyColor.FromAColor(200, OxyColors.White),
-                LegendBorder = OxyColors.Black
+                LegendBorder = OxyColors.Black,
+                LegendFontSize = 10
             };
             pm.Legends.Add(l);
             return pm;
