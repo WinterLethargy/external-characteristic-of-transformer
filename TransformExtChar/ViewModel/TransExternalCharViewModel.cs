@@ -60,7 +60,7 @@ namespace TransformExtChar.ViewModel
         #endregion
 
         #region Свойства для работы плоттера
-        public PlotterVM PlotterVM { get; set; } = new PlotterVM();
+        public PlotterViewModel PlotterVM { get; set; } = new PlotterViewModel();
         #endregion
 
         #region Конструкторы

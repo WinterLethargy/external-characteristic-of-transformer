@@ -19,7 +19,7 @@ using TransformExtChar.Services;
 
 namespace TransformExtChar.ViewModel
 {
-    internal class PlotterVM : OnPropertyChangedClass
+    internal class PlotterViewModel : OnPropertyChangedClass
     {
         #region Команды
 
@@ -125,6 +125,29 @@ namespace TransformExtChar.ViewModel
         }
         #endregion
 
+        #region сохранить PNG
+        public ICommand SavePNGCommand { get; }
+        private void SavePNG_Execute(object p)
+        {
+            if (!(p is PlotView plotView))
+                return;
+
+            var dlg = new SaveFileDialog
+            {
+                Filter = ".png files|*.png",
+                DefaultExt = ".png"
+            };
+            if (dlg.ShowDialog().Value)                                                     // Чтобы вызвать PngExporter.Export() без обращения к диспетчеру
+            {                                                                               // код должен выполняться в потоке пользовательского интерфейса
+                PngExporter.Export(Plotter, dlg.FileName, 5 * (int)plotView.ActualWidth, 5 * (int)plotView.ActualHeight, 500); 
+            }
+        }
+        private bool SavePNG_CanExecute(object p)
+        {
+            return Plotter.Series.Any(series => series.IsVisible == true);
+        }
+        #endregion
+
         #endregion
 
         #region Свойства и поля
@@ -137,7 +160,7 @@ namespace TransformExtChar.ViewModel
 
         private DataService DataService { get; } = new DataService();
 
-        public PlotterVM()
+        public PlotterViewModel()
         {
             Plotter = CreatePlotModel();
             EditedSeries = new LineSeries
@@ -149,7 +172,7 @@ namespace TransformExtChar.ViewModel
             FixSeriesCommand = new RelayCommand(FixSeries_Executed, FixSeries_CanExecuted);
             DeleteHiddenSeriesCommand = new RelayCommand(DeleteHiddenSeries_Execute, DeleteHiddenSeries_CanExecute);
             AddSeriesFromFileCommand = new RelayCommand(AddSeriesFromFile_Execute, AddSeriesFromFile_CanExecute);
-            SavePDFCommand = new RelayCommand(SavePDF_Execute, SavePDF_CanExecute);
+            SavePNGCommand = new RelayCommand(SavePNG_Execute, SavePNG_CanExecute);
         }
 
         private static PlotModel CreatePlotModel()

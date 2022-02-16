@@ -87,7 +87,7 @@ namespace TransformExtChar
         {
             var dialog = new AddSeriesWindow() { Owner = this };
 
-            var dialogVM = (AddSeriesVM)dialog.DataContext;
+            var dialogVM = (AddSeriesViewModel)dialog.DataContext;
             var thisVM = (TransExternalCharViewModel)DataContext;        // нельзя в конструкторе, потому что Owner на тот момент ещё не инициализировано
 
             dialogVM.PlotterVM = thisVM.PlotterVM;

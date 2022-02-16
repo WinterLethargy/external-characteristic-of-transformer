@@ -10,7 +10,7 @@ using TransformExtChar.Infrastructure.Command;
 
 namespace TransformExtChar.ViewModel
 {
-    internal class AddSeriesVM : OnPropertyChangedClass
+    internal class AddSeriesViewModel : OnPropertyChangedClass
     {
         #region Команды
 
@@ -36,7 +36,7 @@ namespace TransformExtChar.ViewModel
 
         #endregion
 
-        public AddSeriesVM()
+        public AddSeriesViewModel()
         {
             Title = $"Расчетная характеристика {CalcSeriesCounter}";
 
@@ -49,6 +49,6 @@ namespace TransformExtChar.ViewModel
         private string _title;
         public string Title { get => _title; set => Set(ref _title, value); }
 
-        public PlotterVM PlotterVM { get; set; }
+        public PlotterViewModel PlotterVM { get; set; }
     }
 }

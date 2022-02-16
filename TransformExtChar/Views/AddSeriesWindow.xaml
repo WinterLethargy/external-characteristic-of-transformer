@@ -15,7 +15,7 @@
         ResizeMode="NoResize"
         x:Name="ThisWindow">
     <Window.DataContext>
-        <vm:AddSeriesVM/>
+        <vm:AddSeriesViewModel/>
     </Window.DataContext>
     <Border Margin="3" Padding="3" BorderThickness="3" BorderBrush="Gray" CornerRadius="7" Background="LightGray">
         <Grid>

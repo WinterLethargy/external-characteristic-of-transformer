@@ -189,6 +189,7 @@
                     <MenuItem Header="Зафиксировать график" Command="{Binding FixSeriesCommand}"/>
                     <MenuItem Header="Удалить скрытые графики" Command="{Binding DeleteHiddenSeriesCommand}"/>
                     <MenuItem Header="Загрузить график из CSV" x:Name="AddSeriesFromFileMenuItem" Command="{Binding AddSeriesFromFileCommand}"/>
+                    <MenuItem Header="Сохранить в PNG" Command="{Binding SavePNGCommand}" CommandParameter="{x:Reference Name=PlotView}"/>
                 </ContextMenu>
             </oxy:PlotView.ContextMenu>
         </oxy:PlotView>
