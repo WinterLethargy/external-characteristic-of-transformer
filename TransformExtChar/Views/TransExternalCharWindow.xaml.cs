@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TransformExtChar.Infrastructure;
+using TransformExtChar.Infrastructure.Converters;
 using TransformExtChar.ViewModel;
 using TransformExtChar.Views;
 
@@ -56,8 +57,7 @@ namespace TransformExtChar
                     case MessageEnum.UpdatePlotter_UpdateDataTrue: UpdatePlotter(true, true); break;
                     case MessageEnum.InvalidatePlot_UpdateDataFalse:  UpdatePlotter(false, false); break;
                     case MessageEnum.InvalidatePlot_UpdateDataTrue: UpdatePlotter(false, true); break;
-                    case MessageEnum.CalcParamFromDataSheet_Open: OpenCalcParamFromDataSheetWindow(); break;
-                    case MessageEnum.AddFixedSeries_Open: OpenAddSeriesWindow(mes, p); break;
+                    case MessageEnum.AddSeries_Open: OpenAddSeriesWindow(mes, p); break;
                     default: break;
                 }
             }
@@ -70,18 +70,6 @@ namespace TransformExtChar
         {
             if (resetAxes) PlotView.ResetAllAxes();
             PlotView.InvalidatePlot(updateData);
-        }
-        private void OpenCalcParamFromDataSheetWindow()
-        {
-            var dialog = new CalcParamFromDataSheetWindow() { Owner = this };
-
-            var dialogVM = (CalcParamFromDataSheetViewModel)dialog.DataContext;
-            var thisVM = (TransExternalCharViewModel)DataContext;        // нельзя в конструкторе, потому что Owner на тот момент ещё не инициализировано
-
-            dialogVM.EquivalentCurcuitVM = thisVM.EquivalentCurcuitVM;
-            dialogVM.ModeParametersVM = thisVM.ModeParametersVM;
-
-            dialog.ShowDialog();
         }
         private void OpenAddSeriesWindow(MessageEnum fixedOrUsers, object p)
         {
@@ -105,7 +93,8 @@ namespace TransformExtChar
                     //if(AddSeriesFromFileMenuItem.Command.CanExecute(new object()))    // сразу после запуска команда ещё не привязана
                     //    AddSeriesFromFileMenuItem.Command.Execute(file);
                     var plotterVM = ((TransExternalCharViewModel)DataContext).PlotterVM;
-                    if (plotterVM.AddSeriesFromFileCommand.CanExecute(new object()))
+
+                    if (plotterVM.AddSeriesFromFileCommand.CanExecute(null))
                         plotterVM.AddSeriesFromFileCommand.Execute(file);
                 }
             }

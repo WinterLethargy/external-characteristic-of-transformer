@@ -27,7 +27,7 @@ namespace TransformExtChar.ViewModel
         public ICommand FixSeriesCommand { get; }
         public void FixSeries_Executed(object p)
         {
-            MessageBus.Send(MessageEnum.AddFixedSeries_Open);
+            MessageBus.Send(MessageEnum.AddSeries_Open);
         }
         private bool FixSeries_CanExecuted(object p)
         {
@@ -169,10 +169,10 @@ namespace TransformExtChar.ViewModel
                 Color = OxyColors.Black,
                 TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
             };
-            FixSeriesCommand = new RelayCommand(FixSeries_Executed, FixSeries_CanExecuted);
-            DeleteHiddenSeriesCommand = new RelayCommand(DeleteHiddenSeries_Execute, DeleteHiddenSeries_CanExecute);
-            AddSeriesFromFileCommand = new RelayCommand(AddSeriesFromFile_Execute, AddSeriesFromFile_CanExecute);
-            SavePNGCommand = new RelayCommand(SavePNG_Execute, SavePNG_CanExecute);
+            FixSeriesCommand = new RelayCommand(FixSeries_Executed, FixSeries_CanExecuted, "Зафиксировать график");
+            DeleteHiddenSeriesCommand = new RelayCommand(DeleteHiddenSeries_Execute, DeleteHiddenSeries_CanExecute, "Удалить скрытые графики\n(чтобы скрыть график, кликните по его имени в легенде)");
+            AddSeriesFromFileCommand = new RelayCommand(AddSeriesFromFile_Execute, AddSeriesFromFile_CanExecute, "Загрузить графики из CSV файла");
+            SavePNGCommand = new RelayCommand(SavePNG_Execute, SavePNG_CanExecute, "Сохранить плоттер в PNG");
         }
 
         private static PlotModel CreatePlotModel()
@@ -227,6 +227,15 @@ namespace TransformExtChar.ViewModel
                 Plotter.Series.Add(EditedSeries);                                    // то добавить его
 
             MessageBus.Send(MessageEnum.UpdatePlotter_UpdateDataTrue);
+
+
+            Application.Current.Dispatcher.BeginInvoke((Action) (() => CommandManager.InvalidateRequerySuggested()));// это не должно вызываться здесь, здесь должно быть сообщение шине сообщений
+                                                                                                                     // но где должен выполняться обработчик этого сообщения?
+                                                                                                                     // это странно, но почему-то этот вызов обновляет состояние команд только при выполнении
+                                                                                                                     // в этом методе, если его вызвать в вызывающей функции, то обновления не произойдёт (после первой компиляции
+                                                                                                                     // и запуске обновление команд происходит, при дальнейших компиляциях не происходит.. это как вообще?)
+
+
         }
         private Task UpdateEditedSeriesPointsAsync(List<VCPointData> newCharacteristic)
         {

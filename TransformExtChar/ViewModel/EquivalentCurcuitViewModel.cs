@@ -9,6 +9,8 @@ namespace TransformExtChar.ViewModel
 {
     internal class EquivalentCurcuitViewModel : OnPropertyChangedClass
     {
+
+        #region Параметры схемы замещения
         private double _R1 = 0.67;
         public double R1 { get => _R1; set => Set(ref _R1, value); }
 
@@ -29,6 +31,8 @@ namespace TransformExtChar.ViewModel
 
         private double _K = 1.91;
         public double K { get => _K; set => Set(ref _K, value); }
+        #endregion
+
 
         public EquivalentCurcuit GetEquivalentCurcuit()
         {

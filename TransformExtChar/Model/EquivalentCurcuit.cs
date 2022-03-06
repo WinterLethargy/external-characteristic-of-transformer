@@ -1,34 +1,165 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using TransformExtChar.Infrastructure;
 
 namespace TransformExtChar.Model
 {
-    public class EquivalentCurcuit
+    public class EquivalentCurcuit : OnPropertyChangedClass, IDataErrorInfo
     {
-        #region Параметры схемы замещения
 
-        public Complex Zm { get; set; }
-        public Complex Z1 { get; set; }
-        public Complex Z2_Сorrected { get; set; }
-        public double K { get; set; }
-
-        #endregion
-
-        #region constructors
-        public EquivalentCurcuit() { } // из-за определения конструктора с параметрами конструктор без параметров нужно создать явно
-        public EquivalentCurcuit(TransformerDatasheetSpecifications specifications)
+        #region Проверки ошибок данных
+        private void MagnetizingBranchCheck([CallerMemberName] string PropertyName = null, bool recursive = true)
         {
-            if (specifications.TryGetEquivalentCurcuitParameters(out var parameters)) // иначе все параметры будут инициализированы нулями
+            DataErrorChecker.CheckErrors(() => Zm.Magnitude == 0, "В ветви намагничивания должно быть сопротивление", errors, PropertyName);
+
+            if (recursive)
             {
-                Zm = parameters.Zm;
-                Z1 = parameters.Z1;
-                Z2_Сorrected = parameters.Z2_Сorrected;
-                K = parameters.K;
+                const string firstName = nameof(Rm);
+                const string secondName = nameof(Xm);
+                const string ZmName = nameof(Zm);
+
+                switch (PropertyName)
+                {
+                    case firstName:
+                        MagnetizingBranchCheck(secondName, false);
+                        OnPropertyChanged(secondName);
+                        break;
+                    case secondName:
+                        MagnetizingBranchCheck(firstName, false);
+                        OnPropertyChanged(firstName);
+                        break;
+                    case ZmName:
+                        MagnetizingBranchCheck(firstName, false);
+                        OnPropertyChanged(firstName);
+                        MagnetizingBranchCheck(secondName, false);
+                        OnPropertyChanged(secondName);
+                        break;
+                    default:
+                        throw new ArgumentException();
+                }
             }
         }
+        #endregion
+
+        #region Параметры схемы замещения
+        private Complex _Z1;
+        public Complex Z1
+        {
+            get => _Z1;
+            set
+            {
+                _Z1 = value;
+                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors);
+                OnPropertyChanged(nameof(R1));
+            }
+        }
+        public double R1 
+        { 
+            get => Z1.Real;
+            set 
+            {
+                Z1 = new Complex(value, X1);
+                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                OnPropertyChanged();
+            }
+        }
+        public double X1 
+        { 
+            get => Z1.Imaginary;
+            set
+            {
+                Z1 = new Complex(R1, value);
+                OnPropertyChanged();
+            } 
+        }
+
+        private Complex _Z2_Corrected;
+        public Complex Z2_Сorrected
+        {
+            get => _Z2_Corrected;
+            set
+            {
+                _Z2_Corrected = value;
+                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors);
+                OnPropertyChanged(nameof(R2_Corrected));
+            }
+        }
+        public double R2_Corrected
+        { 
+            get => Z2_Сorrected.Real;
+            set
+            {
+                Z2_Сorrected = new Complex(value, X2_Corrected);
+                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                OnPropertyChanged();
+            }
+        }
+        public double X2_Corrected
+        {
+            get => Z2_Сorrected.Imaginary;
+            set
+            {
+                Z2_Сorrected = new Complex(R2_Corrected, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public Complex _Zm { get; set; }
+        public Complex Zm
+        {
+            get => _Zm;
+            set
+            {
+                _Zm = value;
+                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors);
+                OnPropertyChanged(nameof(Rm));
+            }
+        }
+        public double Rm
+        {
+            get => Zm.Real;
+            set
+            {
+                Zm = new Complex(value, Xm);
+                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                MagnetizingBranchCheck();
+                OnPropertyChanged();
+            }
+        }
+        public double Xm
+        {
+            get => Zm.Imaginary;
+            set
+            {
+                Zm = new Complex(Rm, value);
+                MagnetizingBranchCheck();
+                OnPropertyChanged();
+            }
+        }
+
+        private double _K;
+        public double K 
+        { 
+            get => _K;
+            set
+            {
+                if(Set(ref _K, value))
+                    DataErrorChecker.AboveZeroCheck(value, errors);
+            }
+        }
+        #endregion
+
+        #region Реализация IDataErrorInfo
+        public string Error => errors.Any(str => str.Value != null) ? "Error" : string.Empty;
+        public string this[string columnName] => errors.ContainsKey(columnName) ? errors[columnName] : null;
+
+        private Dictionary<string, string> errors = new Dictionary<string, string>();
         #endregion
 
         public Task<List<VCPointData>> GetExternalCharacteristicAsync(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0,

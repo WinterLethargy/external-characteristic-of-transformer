@@ -25,10 +25,7 @@ namespace TransformExtChar.Infrastructure
         /// Обновить плоттер без сброса осей
         /// </summary>
         InvalidatePlot_UpdateDataTrue,
-        CalcParamFromDataSheet_Open,
-        CalcParamFromDataSheet_Close,
-        AddFixedSeries_Open,
-        AddUsersSeries_Open,
+        AddSeries_Open,
         AddSeries_Close
     }
 }

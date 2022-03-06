@@ -6,7 +6,7 @@ using System.Text;
 
 namespace TransformExtChar.Infrastructure
 {
-    internal abstract class OnPropertyChangedClass : INotifyPropertyChanged, IDisposable
+    public abstract class OnPropertyChangedClass : INotifyPropertyChanged, IDisposable
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
