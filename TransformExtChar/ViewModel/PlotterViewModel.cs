@@ -165,7 +165,7 @@ namespace TransformExtChar.ViewModel
             Plotter = CreatePlotModel();
             EditedSeries = new LineSeries
             {
-                Title = "Рассчетная характеристика",                        // отличитильные черты редактируемого графика - название и цвет
+                Title = "Расчетная характеристика",                        // отличитильные черты редактируемого графика - название и цвет
                 Color = OxyColors.Black,
                 TrackerFormatString = "{1}: {2:.###}\n{3}: {4:.###}"
             };

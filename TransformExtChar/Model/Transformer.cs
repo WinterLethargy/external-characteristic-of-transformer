@@ -68,10 +68,11 @@ namespace TransformExtChar.Model
         {
             if (TransformerType == TransformerTypeEnum.ThreePhase && SecondWinding == StarOrTriangleEnum.None) return new List<VCPointData>();
 
-            return EquivalentCurcuit.GetExternalCharacteristic(fi2_rad, I2_correctedStart, I2_correctedEnd, U1, I2_step).
+            var gain = TransformerTypeRecalculatedCoefficientDictionary[TransformerType].Invoke();
+
+            return EquivalentCurcuit.GetExternalCharacteristic(fi2_rad, I2_correctedStart / gain.CurrentGane, I2_correctedEnd / gain.CurrentGane, U1, I2_step / gain.CurrentGane).
                                      Select(point =>
                                      {
-                                         var gain = TransformerTypeRecalculatedCoefficientDictionary[TransformerType].Invoke();
                                          return new VCPointData
                                          {
                                              Current = point.Current * gain.CurrentGane,
