@@ -4,9 +4,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace TransformExtChar.ViewModel
+namespace TransformExtChar.Infrastructure
 {
-    internal abstract class ViewModel : INotifyPropertyChanged, IDisposable
+    public abstract class OnPropertyChangedClass : INotifyPropertyChanged, IDisposable
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
