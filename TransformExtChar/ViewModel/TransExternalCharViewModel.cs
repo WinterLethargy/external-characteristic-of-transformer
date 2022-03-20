@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using TransformExtChar.Infrastructure;
 using TransformExtChar.Infrastructure.Command;
@@ -65,6 +69,77 @@ namespace TransformExtChar.ViewModel
         private bool CalcTransformerFromDataSheet_CanExecuted(object p) => DataSheet.Error == string.Empty;
         #endregion
 
+        #region Сохранение в файл и загрузка из файла трансформатора и его паспортных данных
+
+        #region Сохранить параметры трансформатора в файл
+
+        public ICommand SaveTransToJsonCommand { get; }
+
+        private void SaveTransToJson_Executed(object p)
+        {
+            Action<string> serialize;
+
+            if (p == Transformer)
+                serialize = (path) => File.WriteAllText(path, JsonConvert.SerializeObject(Transformer, Formatting.Indented, new ComplexJsonConverter()));
+            else if (p == DataSheet)
+                serialize = (path) => File.WriteAllText(path, JsonConvert.SerializeObject(DataSheet, Formatting.Indented));
+            else throw new Exception();
+
+            var dlg = new SaveFileDialog
+            {
+                Filter = "JSON|*.json;*.txt",
+                DefaultExt = ".json"
+            };
+            if (dlg.ShowDialog().Value)
+            {
+                serialize(dlg.FileName);
+            }
+        }
+
+        #endregion
+
+        #region Загрузить трансформатор из файла
+
+        public ICommand OpenTransFromJsonCommand { get; }
+
+        private void OpenTransFromJson_Executed(object p)
+        {
+            Action<string> deserialize;
+
+            var setting = new JsonSerializerSettings();
+            setting.Error = delegate (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) 
+            {
+                MessageBox.Show("Неправильно сформатированн файл!", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                args.ErrorContext.Handled = true;
+            };
+
+            if (p == Transformer)
+            {
+                setting.Converters.Add(new ComplexJsonConverter());
+                deserialize = (path) => Transformer = JsonConvert.DeserializeObject<Transformer>(File.ReadAllText(path), setting);
+            }
+            else if (p == DataSheet)
+                deserialize = (path) => DataSheet = JsonConvert.DeserializeObject<TransformerDatasheet>(File.ReadAllText(path), setting);
+            else throw new Exception();
+
+            var dlg = new OpenFileDialog 
+            { 
+                Filter = "JSON|*.json;*.txt", 
+                DefaultExt = ".json" 
+            };
+
+            if (dlg.ShowDialog().Value)
+            {
+                deserialize(dlg.FileName);
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+        
+
         #endregion
 
         #region Тип трансформатора и обмоток
@@ -81,21 +156,6 @@ namespace TransformExtChar.ViewModel
             StarOrTriangleEnum.Triangle
         };
 
-        private Transformer _transformer = new Transformer(new EquivalentCurcuit()
-                                                           {
-                                                               R1 = 0.67,
-                                                               X1 = 0.11,
-                                                               R2_Corrected = 0.67,
-                                                               X2_Corrected = 0.11,
-                                                               Rm = 45.013,
-                                                               Xm = 285.95,
-                                                               K = 1.91
-                                                           });
-        public Transformer Transformer
-        {
-            get => _transformer;
-            set => Set(ref _transformer, value);
-        }
 
         private TransformerTypeEnum _transformerType;
         public TransformerTypeEnum TransformerType
@@ -153,7 +213,27 @@ namespace TransformExtChar.ViewModel
         }
         #endregion
 
-        public TransformerDatasheet DataSheet { get; set; } = new TransformerDatasheet();
+        private Transformer _transformer = new Transformer(new EquivalentCurcuit()
+                                                           {
+                                                               R1 = 0.67,
+                                                               X1 = 0.11,
+                                                               R2_Corrected = 0.67,
+                                                               X2_Corrected = 0.11,
+                                                               Rm = 45.013,
+                                                               Xm = 285.95,
+                                                               K = 1.91
+                                                           });
+        public Transformer Transformer
+        {
+            get => _transformer;
+            set => Set(ref _transformer, value);
+        }
+        private TransformerDatasheet _dataSheet = new TransformerDatasheet();
+        public TransformerDatasheet DataSheet 
+        {
+            get => _dataSheet; 
+            set => Set(ref _dataSheet, value);
+        }
         public ModeParameters ModeParameters { get; set; } = new ModeParameters();
         private bool _fullChar;
 
@@ -183,6 +263,8 @@ namespace TransformExtChar.ViewModel
             CalcExtCharFromEquivalentCurcuitCommand = new RelayCommand(CalcExtCharFromEquivalentCurcuit_Executed, CalcExtCharFromEquivalentCurcuit_CanExecuted, "Построить внешнюю характеристику из Т схемы замещения");
             CalcExtCharFromDataSheetCommand = new RelayCommand(CalcExtCharFromDataSheet_Executed, CalcExtCharFromDataSheet_CanExecuted, "Построить внешнюю характеристику из паспортных данных");
             CalcTransformerFromDataSheetCommand = new RelayCommand(CalcTransformerFromDataSheet_Executed, CalcTransformerFromDataSheet_CanExecuted, "Пересчитать Т схему замещения");
+            SaveTransToJsonCommand = new RelayCommand(SaveTransToJson_Executed, null, "Сохранить в файл");
+            OpenTransFromJsonCommand = new RelayCommand(OpenTransFromJson_Executed, null, "Загрузить из файла");
             TransformerType = TransformerTypes.First();
         }
         #endregion

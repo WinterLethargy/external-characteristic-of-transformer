@@ -55,7 +55,7 @@ namespace TransformExtChar.Model
         /// <param name="errors"></param>
         /// <param name="text"></param>
         /// <param name="PropertyName"></param>
-        static public void AboveZeroCheck(double value, Dictionary<string, string> errors, string text = "Не может быть меньше или равно нулю", [CallerMemberName] string PropertyName = null)
+        static public void AboveZeroCheck(double value, Dictionary<string, string> errors, [CallerMemberName] string PropertyName = null, string text = "Не может быть меньше или равно нулю")
         {
             CheckErrors(() => value <= 0, text, errors, PropertyName);
         }
@@ -66,7 +66,7 @@ namespace TransformExtChar.Model
         /// <param name="errors"></param>
         /// <param name="text"></param>
         /// <param name="PropertyName"></param>
-        static public void AboveOrEqualZeroCheck(double value, Dictionary<string, string> errors, string text = "Не может быть меньше нуля", [CallerMemberName] string PropertyName = null)
+        static public void AboveOrEqualZeroCheck(double value, Dictionary<string, string> errors, [CallerMemberName] string PropertyName = null, string text = "Не может быть меньше нуля")
         {
             CheckErrors(() => value < 0, text, errors, PropertyName);
         }

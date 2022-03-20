@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,8 +13,143 @@ namespace TransformExtChar.Model
 {
     public class EquivalentCurcuit : OnPropertyChangedClass, IDataErrorInfo
     {
+        #region Параметры схемы замещения
+        private Complex _Z1;
 
-        #region Проверки ошибок данных
+        [JsonProperty(Required = Required.Always)]
+        public Complex Z1
+        {
+            get => _Z1;
+            set
+            {
+                _Z1 = value;
+                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors, nameof(R1));
+                OnPropertyChanged(nameof(R1));
+            }
+        }
+
+        [JsonIgnore]
+        public double R1
+        {
+            get => Z1.Real;
+            set
+            {
+                Z1 = new Complex(value, X1);
+                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                OnPropertyChanged();
+            }
+        }
+
+        [JsonIgnore]
+        public double X1
+        {
+            get => Z1.Imaginary;
+            set
+            {
+                Z1 = new Complex(R1, value);
+                OnPropertyChanged();
+            }
+        }
+
+        private Complex _Z2_Corrected;
+
+        [JsonProperty(Required = Required.Always)]
+        public Complex Z2_Сorrected
+        {
+            get => _Z2_Corrected;
+            set
+            {
+                _Z2_Corrected = value;
+                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors, nameof(R2_Corrected));
+                OnPropertyChanged(nameof(R2_Corrected));
+            }
+        }
+
+        [JsonIgnore]
+        public double R2_Corrected
+        {
+            get => Z2_Сorrected.Real;
+            set
+            {
+                Z2_Сorrected = new Complex(value, X2_Corrected);
+                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                OnPropertyChanged();
+            }
+        }
+
+        [JsonIgnore]
+        public double X2_Corrected
+        {
+            get => Z2_Сorrected.Imaginary;
+            set
+            {
+                Z2_Сorrected = new Complex(R2_Corrected, value);
+                OnPropertyChanged();
+            }
+        }
+
+        private Complex _Zm;
+
+        [JsonProperty(Required = Required.Always)]
+        public Complex Zm
+        {
+            get => _Zm;
+            set
+            {
+                _Zm = value;
+                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors, PropertyName: nameof(Rm));
+                MagnetizingBranchCheck();
+                OnPropertyChanged(nameof(Rm));
+            }
+        }
+
+        [JsonIgnore]
+        public double Rm
+        {
+            get => Zm.Real;
+            set
+            {
+                Zm = new Complex(value, Xm);
+                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                MagnetizingBranchCheck();
+                OnPropertyChanged();
+            }
+        }
+
+        [JsonIgnore]
+        public double Xm
+        {
+            get => Zm.Imaginary;
+            set
+            {
+                Zm = new Complex(Rm, value);
+                MagnetizingBranchCheck();
+                OnPropertyChanged();
+            }
+        }
+
+        private double _K;
+
+        [JsonProperty(Required = Required.Always)]
+        public double K
+        {
+            get => _K;
+            set
+            {
+                if (Set(ref _K, value))
+                    DataErrorChecker.AboveZeroCheck(value, errors);
+            }
+        }
+        #endregion
+
+        #region Реализация IDataErrorInfo
+        [JsonIgnore]
+        public string Error => errors.Any(str => str.Value != null) ? "Error" : string.Empty;
+        public string this[string columnName] => errors.ContainsKey(columnName) ? errors[columnName] : null;
+        private Dictionary<string, string> errors = new Dictionary<string, string>();
+        #endregion
+
+        #region Методы проверкок ошибок данных
         private void MagnetizingBranchCheck([CallerMemberName] string PropertyName = null, bool recursive = true)
         {
             DataErrorChecker.CheckErrors(() => Zm.Magnitude == 0, "В ветви намагничивания должно быть сопротивление", errors, PropertyName);
@@ -47,120 +183,7 @@ namespace TransformExtChar.Model
         }
         #endregion
 
-        #region Параметры схемы замещения
-        private Complex _Z1;
-        public Complex Z1
-        {
-            get => _Z1;
-            set
-            {
-                _Z1 = value;
-                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors);
-                OnPropertyChanged(nameof(R1));
-            }
-        }
-        public double R1 
-        { 
-            get => Z1.Real;
-            set 
-            {
-                Z1 = new Complex(value, X1);
-                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                OnPropertyChanged();
-            }
-        }
-        public double X1 
-        { 
-            get => Z1.Imaginary;
-            set
-            {
-                Z1 = new Complex(R1, value);
-                OnPropertyChanged();
-            } 
-        }
-
-        private Complex _Z2_Corrected;
-        public Complex Z2_Сorrected
-        {
-            get => _Z2_Corrected;
-            set
-            {
-                _Z2_Corrected = value;
-                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors);
-                OnPropertyChanged(nameof(R2_Corrected));
-            }
-        }
-        public double R2_Corrected
-        { 
-            get => Z2_Сorrected.Real;
-            set
-            {
-                Z2_Сorrected = new Complex(value, X2_Corrected);
-                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                OnPropertyChanged();
-            }
-        }
-        public double X2_Corrected
-        {
-            get => Z2_Сorrected.Imaginary;
-            set
-            {
-                Z2_Сorrected = new Complex(R2_Corrected, value);
-                OnPropertyChanged();
-            }
-        }
-
-        public Complex _Zm { get; set; }
-        public Complex Zm
-        {
-            get => _Zm;
-            set
-            {
-                _Zm = value;
-                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors);
-                OnPropertyChanged(nameof(Rm));
-            }
-        }
-        public double Rm
-        {
-            get => Zm.Real;
-            set
-            {
-                Zm = new Complex(value, Xm);
-                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                MagnetizingBranchCheck();
-                OnPropertyChanged();
-            }
-        }
-        public double Xm
-        {
-            get => Zm.Imaginary;
-            set
-            {
-                Zm = new Complex(Rm, value);
-                MagnetizingBranchCheck();
-                OnPropertyChanged();
-            }
-        }
-
-        private double _K;
-        public double K 
-        { 
-            get => _K;
-            set
-            {
-                if(Set(ref _K, value))
-                    DataErrorChecker.AboveZeroCheck(value, errors);
-            }
-        }
-        #endregion
-
-        #region Реализация IDataErrorInfo
-        public string Error => errors.Any(str => str.Value != null) ? "Error" : string.Empty;
-        public string this[string columnName] => errors.ContainsKey(columnName) ? errors[columnName] : null;
-
-        private Dictionary<string, string> errors = new Dictionary<string, string>();
-        #endregion
+        #region Методы, считающие внешнюю характеристику
 
         public Task<List<VCPointData>> GetExternalCharacteristicAsync(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0,
                                                       double U1 = 0, double I2_step = 0.01)
@@ -173,7 +196,7 @@ namespace TransformExtChar.Model
             return Task.Run(() => GetFullExternalCharacteristic(fi2_rad, U1, I2_step));
         }
 
-        public List<VCPointData> GetExternalCharacteristic(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0, 
+        public List<VCPointData> GetExternalCharacteristic(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0,
                                                       double U1 = 0, double I2_step = 0.01)
         {
             if (I2_correctedStart < 0 || I2_correctedEnd < 0 || U1 < 0 || I2_step <= 0) return new List<VCPointData>();
@@ -189,10 +212,10 @@ namespace TransformExtChar.Model
                 I2_correctedStart = temp;
             }
 
-            if (I2_correctedEnd == 0) return ComputeExternalCharacteristicWhile(fi2_rad, 0, U1, I2_step, I2_corectCurrent => true); 
-                                                                                                  // если начало и конец расчетного интервала совпадают
-                                                                                                  // на 0, то вернуть характиристику от холостого хода
-                                                                                                  // до короткого замыкания
+            if (I2_correctedEnd == 0) return ComputeExternalCharacteristicWhile(fi2_rad, 0, U1, I2_step, I2_corectCurrent => true);
+            // если начало и конец расчетного интервала совпадают
+            // на 0, то вернуть характиристику от холостого хода
+            // до короткого замыкания
             return ComputeExternalCharacteristicWhile(fi2_rad, I2_correctedStart, U1, I2_step, I2_corectCurrent => I2_corectCurrent < I2_correctedEnd);
         }
 
@@ -215,7 +238,7 @@ namespace TransformExtChar.Model
             if (Zm == 0) return ExternalCharacteristic;         // трансформатор не передает энергию
                                                                 // не получится посчитать угол напряжения на нагрузке
             Complex Z1Zm_sum = Z1 + Zm;
-            
+
             if (Z1Zm_sum == 0) return ExternalCharacteristic;   // находится в знаменателе нескольких выражений
 
             Complex Za = -Zm / Z1Zm_sum;
@@ -287,6 +310,8 @@ namespace TransformExtChar.Model
                 ExternalCharacteristic.Add(data);
             }
         }
+
+        #endregion
     }
 }
 

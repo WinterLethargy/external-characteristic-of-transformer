@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -10,9 +12,19 @@ namespace TransformExtChar.Model
     public class Transformer : OnPropertyChangedClass
     {
         #region Свойства и поля
-        public EquivalentCurcuit EquivalentCurcuit { get; }
+
+        private EquivalentCurcuit _equivalentCurcuit;
+        [JsonProperty(Required = Required.Always)]
+        public EquivalentCurcuit EquivalentCurcuit
+        {
+            get => _equivalentCurcuit;
+            set => Set(ref _equivalentCurcuit, value);
+        }
 
         private TransformerTypeEnum _transformerType;
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonProperty(Required = Required.Always)]
         public TransformerTypeEnum TransformerType
         {
             get => _transformerType;
@@ -20,6 +32,9 @@ namespace TransformExtChar.Model
         }
 
         private StarOrTriangleEnum _firstWinding;
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonProperty(Required = Required.Always)]
         public StarOrTriangleEnum FirstWinding
         {
             get => _firstWinding;
@@ -27,13 +42,15 @@ namespace TransformExtChar.Model
         }
 
         private StarOrTriangleEnum _secondWinding;
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonProperty(Required = Required.Always)]
         public StarOrTriangleEnum SecondWinding
         {
             get => _secondWinding;
             set => Set(ref _secondWinding, value);
         }
         #endregion
-
 
         #region Методы и поля для пересчета точек
         private Dictionary<TransformerTypeEnum, Func<(double VolageGain, double CurrentGane)>> TransformerTypeRecalculatedCoefficientDictionary;
@@ -70,7 +87,7 @@ namespace TransformExtChar.Model
 
             var gain = TransformerTypeRecalculatedCoefficientDictionary[TransformerType].Invoke();
 
-            return EquivalentCurcuit.GetExternalCharacteristic(fi2_rad, I2_correctedStart / gain.CurrentGane, I2_correctedEnd / gain.CurrentGane, U1, I2_step / gain.CurrentGane).
+            return EquivalentCurcuit?.GetExternalCharacteristic(fi2_rad, I2_correctedStart / gain.CurrentGane, I2_correctedEnd / gain.CurrentGane, U1, I2_step / gain.CurrentGane).
                                      Select(point =>
                                      {
                                          return new VCPointData
@@ -79,7 +96,7 @@ namespace TransformExtChar.Model
                                              Voltage = point.Voltage * gain.VolageGain
                                          };
                                      }).
-                                     ToList();
+                                     ToList() ?? new List<VCPointData>();
         }
     }
 }
