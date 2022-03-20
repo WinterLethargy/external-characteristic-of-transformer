@@ -81,10 +81,14 @@
                                         ToolTip="{Binding CalcExtCharFromEquivalentCurcuitCommand.Text}">
                                     <fa5:ImageAwesome Icon="Solid_ChartLine" Height="{StaticResource ResourceKey=ImageAwesomeHeight}"/>
                                 </Button>
-                                <Button Margin="{StaticResource ResourceKey=ButtonMargin}">
+                                <Button Margin="{StaticResource ResourceKey=ButtonMargin}"
+                                        Command="{Binding SaveTransToJsonCommand}"
+                                        CommandParameter="{Binding Transformer}">
                                     <fa5:ImageAwesome Icon="Solid_FileImport" Height="{StaticResource ResourceKey=ImageAwesomeHeight}"/>
                                 </Button>
-                                <Button Margin="{StaticResource ResourceKey=ButtonMargin}">
+                                <Button Margin="{StaticResource ResourceKey=ButtonMargin}"
+                                        Command="{Binding OpenTransFromJsonCommand}"
+                                        CommandParameter="{Binding Transformer}">
                                     <fa5:ImageAwesome Icon="Solid_FileExport" Height="{StaticResource ResourceKey=ImageAwesomeHeight}"/>
                                 </Button>
                             </WrapPanel>
@@ -134,7 +138,7 @@
                                         <Label Grid.Column="0" 
                                                HorizontalAlignment="Right">
                                             <TextBlock>
-                                                <Run Text="X" FontSize="{StaticResource BasicFontSize}"/><Run Text="2" FontSize="{StaticResource SubscribeFontSize}"/><Run Text=":" FontSize="{StaticResource BasicFontSize}"/>
+                                                <Run Text="X" FontSize="{StaticResource BasicFontSize}"/><Run Text="1" FontSize="{StaticResource SubscribeFontSize}"/><Run Text=":" FontSize="{StaticResource BasicFontSize}"/>
                                             </TextBlock>
                                         </Label>
                                         <TextBox Grid.Column="1" 
@@ -248,10 +252,14 @@
                                         ToolTip="{Binding CalcTransformerFromDataSheetCommand.Text}">
                                     Т
                                 </Button>
-                                <Button Margin="{StaticResource ResourceKey=ButtonMargin}">
+                                <Button Margin="{StaticResource ResourceKey=ButtonMargin}"
+                                        Command="{Binding SaveTransToJsonCommand}"
+                                        CommandParameter="{Binding DataSheet}">
                                     <fa5:ImageAwesome Icon="Solid_FileImport" Height="{StaticResource ResourceKey=ImageAwesomeHeight}"/>
                                 </Button>
-                                <Button Margin="{StaticResource ResourceKey=ButtonMargin}">
+                                <Button Margin="{StaticResource ResourceKey=ButtonMargin}"
+                                        Command="{Binding OpenTransFromJsonCommand}"
+                                        CommandParameter="{Binding DataSheet}">
                                     <fa5:ImageAwesome Icon="Solid_FileExport" Height="{StaticResource ResourceKey=ImageAwesomeHeight}"/>
                                 </Button>
                             </WrapPanel>

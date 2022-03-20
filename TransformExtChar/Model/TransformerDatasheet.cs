@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -11,9 +13,185 @@ namespace TransformExtChar.Model
 {
     public class TransformerDatasheet : OnPropertyChangedClass, IDataErrorInfo
     {
+        #region Property
+
+        private TransformerTypeEnum _transformerType;
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonProperty(Required = Required.Always)]
+        public TransformerTypeEnum TransformerType
+        {
+            get => _transformerType;
+            set => Set(ref _transformerType, value);
+        }
+
+        private StarOrTriangleEnum _firstWinding;
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonProperty(Required = Required.Always)]
+        public StarOrTriangleEnum FirstWinding
+        {
+            get => _firstWinding;
+            set => Set(ref _firstWinding, value);
+        }
+
+        private StarOrTriangleEnum _secondWinding;
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonProperty(Required = Required.Always)]
+        public StarOrTriangleEnum SecondWinding
+        {
+            get => _secondWinding;
+            set => Set(ref _secondWinding, value);
+        }
+
+        private double _U1r = 220;
+
+        [JsonProperty(Required = Required.Always)]
+        public double U1r
+        {
+            get => _U1r;
+            set
+            {
+                if (Set(ref _U1r, value))
+                {
+                    DataErrorChecker.AboveZeroCheck(value, errors);
+                    U1sc_Less_U1r_Check();
+                    UnloadedActivePowerCheck();
+                }
+            }
+        }
+
+        private double _U2r = 115;
+
+        [JsonProperty(Required = Required.Always)]
+        public double U2r
+        {
+            get => _U2r;
+            set
+            {
+                if (Set(ref _U2r, value))
+                    DataErrorChecker.AboveZeroCheck(value, errors);
+            }
+        }
+
+        private double _I1r = 7.3;
+
+        [JsonProperty(Required = Required.Always)]
+        public double I1r
+        {
+            get => _I1r;
+            set
+            {
+                if (Set(ref _I1r, value))
+                {
+                    DataErrorChecker.AboveZeroCheck(value, errors);
+                    ShortCircuitActivePowerCheck();
+                }
+            }
+        }
+
+        private double _I0 = 0.76;
+
+        [JsonProperty(Required = Required.Always)]
+        public double I0
+        {
+            get => _I0;
+            set
+            {
+                if (Set(ref _I0, value))
+                {
+                    DataErrorChecker.AboveZeroCheck(value, errors);
+                    UnloadedActivePowerCheck();
+                    OnPropertyChanged(nameof(I0_Percent));
+                }
+            }
+        }
+        [JsonIgnore]
+        public double I0_Percent
+        {
+            get => I0 / I1r * 100;
+            set
+            {
+                I0 = value / 100 * I1r;
+                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                OnPropertyChanged();
+            }
+        }
+
+        private double _P0 = 26;
+
+        [JsonProperty(Required = Required.Always)]
+        public double P0
+        {
+            get => _P0;
+            set
+            {
+                if (Set(ref _P0, value))
+                {
+                    DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                    UnloadedActivePowerCheck();
+                }
+            }
+        }
+
+        private double _U1sc = 10;
+
+        [JsonProperty(Required = Required.Always)]
+        public double U1sc
+        {
+            get => _U1sc;
+            set
+            {
+                if (Set(ref _U1sc, value))
+                {
+                    DataErrorChecker.AboveZeroCheck(value, errors);
+                    U1sc_Less_U1r_Check();
+                    ShortCircuitActivePowerCheck();
+                    OnPropertyChanged(nameof(U1sc_Percent));
+                }
+            }
+        }
+
+        [JsonIgnore]
+        public double U1sc_Percent
+        {
+            get => U1sc / U1r * 100;
+            set
+            {
+                U1sc = value / 100 * U1r;
+                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                OnPropertyChanged();
+            }
+        }
+
+        private double _Psc = 72;
+
+        [JsonProperty(Required = Required.Always)]
+        public double Psc
+        {
+            get => _Psc;
+            set
+            {
+                if (Set(ref _Psc, value))
+                {
+                    DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
+                    ShortCircuitActivePowerCheck();
+                }
+            }
+        }
+        #endregion
+
+        #region Реализация IDataErrorInfo
+        [JsonIgnore]
+        public string Error => errors.Any(str => str.Value != null) ? "Error" : string.Empty;
+        public string this[string columnName] => errors.ContainsKey(columnName) ? errors[columnName] : null;
+
+        private Dictionary<string, string> errors = new Dictionary<string, string>();
+        #endregion
 
         #region Проверки ошибок
-        private void U1sc_Less_U1r_Check([CallerMemberName] string PropertyName = null, bool recursive = true) 
+        private void U1sc_Less_U1r_Check([CallerMemberName] string PropertyName = null, bool recursive = true)
         {
             DataErrorChecker.CheckErrors(() => U1r < U1sc, "Номинальное напряжение не может быть меньше напряжения короткого замыкания", errors, PropertyName);
 
@@ -108,156 +286,6 @@ namespace TransformExtChar.Model
         }
         #endregion
 
-        #region Property
-
-        private TransformerTypeEnum _transformerType;
-        public TransformerTypeEnum TransformerType
-        {
-            get => _transformerType;
-            set => Set(ref _transformerType, value);
-        }
-
-        private StarOrTriangleEnum _firstWinding;
-        public StarOrTriangleEnum FirstWinding
-        {
-            get => _firstWinding;
-            set => Set(ref _firstWinding, value);
-        }
-
-        private StarOrTriangleEnum _secondWinding;
-        public StarOrTriangleEnum SecondWinding
-        {
-            get => _secondWinding;
-            set => Set(ref _secondWinding, value);
-        }
-
-        private double _U1r = 220;
-        public double U1r 
-        { 
-            get => _U1r;
-            set
-            {
-                if (Set(ref _U1r, value))
-                {
-                    DataErrorChecker.AboveZeroCheck(value, errors);
-                    U1sc_Less_U1r_Check();
-                    UnloadedActivePowerCheck();
-                }
-            }
-        }
-
-        private double _U2r = 115;
-        public double U2r 
-        { 
-            get => _U2r;
-            set
-            {
-                if (Set(ref _U2r, value))
-                    DataErrorChecker.AboveZeroCheck(value, errors);
-            }
-        }
-
-        private double _I1r = 7.3;
-        public double I1r 
-        { 
-            get => _I1r;
-            set
-            {
-                if(Set(ref _I1r, value))
-                {
-                    DataErrorChecker.AboveZeroCheck(value, errors);
-                    ShortCircuitActivePowerCheck();
-                }
-            } 
-        }
-
-        private double _I0 = 0.76;
-        public double I0 
-        { 
-            get => _I0;
-            set
-            {
-                if(Set(ref _I0, value))
-                {
-                    DataErrorChecker.AboveZeroCheck(value, errors);
-                    UnloadedActivePowerCheck();
-                    OnPropertyChanged(nameof(I0_Percent));
-                }
-            }
-        }
-        public double I0_Percent
-        {
-            get => I0 / I1r * 100;
-            set
-            {
-                I0 = value / 100 * I1r;
-                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                OnPropertyChanged();
-            }
-        }
-
-        private double _P0 = 26;
-        public double P0 
-        { 
-            get => _P0;
-            set
-            {
-                if(Set(ref _P0, value))
-                {
-                    DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                    UnloadedActivePowerCheck();
-                }
-            } 
-        }
-
-        private double _U1sc = 10;
-        public double U1sc 
-        { 
-            get => _U1sc;
-            set
-            {
-                if(Set(ref _U1sc, value))
-                {
-                    DataErrorChecker.AboveZeroCheck(value, errors);
-                    U1sc_Less_U1r_Check();
-                    ShortCircuitActivePowerCheck();
-                    OnPropertyChanged(nameof(U1sc_Percent));
-                }
-            }
-        }
-        public double U1sc_Percent
-        {
-            get => U1sc / U1r * 100;
-            set
-            {
-                U1sc = value / 100 * U1r;
-                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                OnPropertyChanged();
-            }
-        }
-
-        private double _Psc = 72;
-        public double Psc 
-        { 
-            get => _Psc;
-            set
-            {
-                if (Set(ref _Psc, value)) 
-                {
-                    DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                    ShortCircuitActivePowerCheck();
-                }
-            }
-        }
-        #endregion
-
-        #region Реализация IDataErrorInfo
-        public string Error => errors.Any(str => str.Value != null) ? "Error" : string.Empty;
-        public string this[string columnName] => errors.ContainsKey(columnName) ? errors[columnName] : null;
-
-        private Dictionary<string, string> errors = new Dictionary<string, string>();
-        #endregion
-
         #region словари и методы, возвращающие множители для сопротивлений
         private Dictionary<TransformerTypeEnum, Func<(double Z0_Gain, double R0_Gain, double Z_ShortCircuit_Gain, double R_ShortCircuit_Gain)>> TransformerTypeRecalculatedCoefficientDictionary;
 
@@ -298,12 +326,12 @@ namespace TransformExtChar.Model
             double Z0 = U1r / I0 * gain.Z0_Gain;                                                            //полное сопротивление намагничивающей ветви
             double R0 = P0 / Math.Pow(I0, 2) * gain.R0_Gain;                                                //активное сопротивление намагничивающей ветви
             double X0 = Math.Sqrt(Math.Pow(Z0, 2) - Math.Pow(R0, 2));                                       //реактивное сопротивление намагничивающей ветви
-            if (double.IsNaN(X0)) 
+            if (double.IsNaN(X0))
                 return false;                                                                               //активная мощность не может быть больше полной мощности (P_Unload < U1_Rated * I1_Unload) 
             double Z_ShortCircuit = U1sc / I1r * gain.Z_ShortCircuit_Gain;                                  //полное сопротивление короткого замыкания
             double R_ShortCircuit = Psc / Math.Pow(I1r, 2) * gain.R_ShortCircuit_Gain;                      //активное сопротивление короткого замыкания
             double X_ShortCircuit = Math.Sqrt(Math.Pow(Z_ShortCircuit, 2) - Math.Pow(R_ShortCircuit, 2));   //реактивное сопротивление короткого замыкания
-            if (double.IsNaN(X_ShortCircuit)) 
+            if (double.IsNaN(X_ShortCircuit))
                 return false;                                               //активная мощность не может быть больше полной мощности (P_ShortCircuit < U1_ShortCircuit * I1_Rated)
             double R12 = R_ShortCircuit / 2;                                //активное сопротивление рассеяния
             double X12 = X_ShortCircuit / 2;                                //реактивное сопротивление рассеяния
