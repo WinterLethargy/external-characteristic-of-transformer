@@ -105,21 +105,37 @@ namespace TransformExtChar.ViewModel
         private void OpenTransFromJson_Executed(object p)
         {
             Action<string> deserialize;
+            bool deserializeIsSuccess = true;
 
             var setting = new JsonSerializerSettings();
             setting.Error = delegate (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) 
             {
-                MessageBox.Show("Неправильно сформатированн файл!", "", MessageBoxButton.OK, MessageBoxImage.Error);
-                args.ErrorContext.Handled = true;
+                if (deserializeIsSuccess)
+                {
+                    MessageBox.Show("Неправильно сформатированн файл!", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                    deserializeIsSuccess = false;
+                }
+                    args.ErrorContext.Handled = true;
             };
 
             if (p == Transformer)
             {
                 setting.Converters.Add(new ComplexJsonConverter());
-                deserialize = (path) => Transformer = JsonConvert.DeserializeObject<Transformer>(File.ReadAllText(path), setting);
+                deserialize = (path) =>
+                {
+                    var transformer = JsonConvert.DeserializeObject<Transformer>(File.ReadAllText(path), setting);
+                    if (deserializeIsSuccess)
+                        Transformer =  transformer;
+                };
             }
             else if (p == DataSheet)
-                deserialize = (path) => DataSheet = JsonConvert.DeserializeObject<TransformerDatasheet>(File.ReadAllText(path), setting);
+                deserialize = (path) =>
+                {
+                    var dataDheet = JsonConvert.DeserializeObject<TransformerDatasheet>(File.ReadAllText(path), setting);
+                    if (deserializeIsSuccess)
+                        DataSheet = dataDheet;
+                };
+
             else throw new Exception();
 
             var dlg = new OpenFileDialog 
