@@ -21,35 +21,8 @@ namespace TransformExtChar.Model
             set => Set(ref _equivalentCurcuit, value);
         }
 
-        private TransformerTypeEnum _transformerType;
-
-        [JsonConverter(typeof(StringEnumConverter))]
         [JsonProperty(Required = Required.Always)]
-        public TransformerTypeEnum TransformerType
-        {
-            get => _transformerType;
-            set => Set(ref _transformerType, value);
-        }
-
-        private StarOrTriangleEnum _firstWinding;
-
-        [JsonConverter(typeof(StringEnumConverter))]
-        [JsonProperty(Required = Required.Always)]
-        public StarOrTriangleEnum FirstWinding
-        {
-            get => _firstWinding;
-            set => Set(ref _firstWinding, value);
-        }
-
-        private StarOrTriangleEnum _secondWinding;
-
-        [JsonConverter(typeof(StringEnumConverter))]
-        [JsonProperty(Required = Required.Always)]
-        public StarOrTriangleEnum SecondWinding
-        {
-            get => _secondWinding;
-            set => Set(ref _secondWinding, value);
-        }
+        public TransformerConfig TransformerConfig { get; set; } = new TransformerConfig();
         #endregion
 
         #region Методы и поля для пересчета точек
@@ -58,11 +31,12 @@ namespace TransformExtChar.Model
         private Dictionary<StarOrTriangleEnum, Func<(double VolageGain, double CurrentGane)>> StarOrTriangleRecalculatedCoefficientDictionary;
         private (double VoltageGain, double CurrentGane) GetRecalculatedCoefficientNone() => (1, 1);
         private (double VoltageGain, double CurrentGane) GetRecalculatedCoefficientOnePhase() => (1 / EquivalentCurcuit.K, EquivalentCurcuit.K);
-        private (double VoltageGain, double CurrentGane) GetRecalculatedCoefficientThreePhase() => StarOrTriangleRecalculatedCoefficientDictionary[SecondWinding].Invoke();
-        private (double VoltageGain, double CurrentGane) GetRecalculatedCoefficientThreePhaseSecondWindingStar() => (1 / EquivalentCurcuit.K * Math.Sqrt(3), 1 / EquivalentCurcuit.K);
+        private (double VoltageGain, double CurrentGane) GetRecalculatedCoefficientThreePhase() => StarOrTriangleRecalculatedCoefficientDictionary[TransformerConfig.SecondWinding].Invoke();
+        private (double VoltageGain, double CurrentGane) GetRecalculatedCoefficientThreePhaseSecondWindingStar() => (1 / EquivalentCurcuit.K * Math.Sqrt(3), EquivalentCurcuit.K);
         private (double VoltageGain, double CurrentGane) GetRecalculatedCoefficientThreePhaseSecondWindingTriangle() => (1 / EquivalentCurcuit.K, EquivalentCurcuit.K * Math.Sqrt(3));
         #endregion
 
+        public Transformer() : this(new EquivalentCurcuit()) { }
         public Transformer(EquivalentCurcuit equivalentCurcuit)
         {
             EquivalentCurcuit = equivalentCurcuit;
@@ -83,11 +57,15 @@ namespace TransformExtChar.Model
 
         public List<VCPointData> GetExternalCharacteristic(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0, double U1 = 0, double I2_step = 0.01)
         {
-            if (TransformerType == TransformerTypeEnum.ThreePhase && SecondWinding == StarOrTriangleEnum.None) return new List<VCPointData>();
+            if (TransformerConfig.TransformerType == TransformerTypeEnum.ThreePhase && TransformerConfig.SecondWinding == StarOrTriangleEnum.None) return new List<VCPointData>();
 
-            var gain = TransformerTypeRecalculatedCoefficientDictionary[TransformerType].Invoke();
+            var gain = TransformerTypeRecalculatedCoefficientDictionary[TransformerConfig.TransformerType].Invoke();
 
-            return EquivalentCurcuit?.GetExternalCharacteristic(fi2_rad, I2_correctedStart / gain.CurrentGane, I2_correctedEnd / gain.CurrentGane, U1, I2_step / gain.CurrentGane).
+            var phaseVoltageGain = TransformerConfig.TransformerType == TransformerTypeEnum.ThreePhase && TransformerConfig.FirstWinding == StarOrTriangleEnum.Star ?
+                                   1 / Math.Sqrt(3) :
+                                   1;
+
+            return EquivalentCurcuit?.GetExternalCharacteristic(fi2_rad, I2_correctedStart / gain.CurrentGane, I2_correctedEnd / gain.CurrentGane, U1 * phaseVoltageGain, I2_step / gain.CurrentGane).
                                      Select(point =>
                                      {
                                          return new VCPointData

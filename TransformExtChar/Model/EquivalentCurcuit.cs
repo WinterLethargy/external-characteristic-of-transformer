@@ -183,6 +183,12 @@ namespace TransformExtChar.Model
         }
         #endregion
 
+        public EquivalentCurcuit()
+        {
+            MagnetizingBranchCheck(nameof(Zm));  // Чтобы установить ошибку данных. Zm не должно быть равным нулю
+            DataErrorChecker.AboveZeroCheck(K, errors, nameof(K));
+        }
+
         #region Методы, считающие внешнюю характеристику
 
         public Task<List<VCPointData>> GetExternalCharacteristicAsync(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0,

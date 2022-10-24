@@ -5,7 +5,7 @@ using System.Text;
 
 namespace TransformExtChar.Model
 {
-    static class DataErrorChecker
+    static class DataErrorChecker // НЕЭФФЕКТИВЕН. МОЖНО СДЕЛАТЬ ЛУЧШЕ
     {
         static public void CheckErrors(Func<bool> predicate, string text, Dictionary<string, string> errors, string PropertyName)
         {

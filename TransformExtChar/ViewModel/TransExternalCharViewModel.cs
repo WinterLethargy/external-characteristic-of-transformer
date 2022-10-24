@@ -33,7 +33,7 @@ namespace TransformExtChar.ViewModel
             const double toRad = Math.PI / 180;
             return Transformer.GetExternalCharacteristic(Fi2 * toRad, I2_start, I2_end, U1, I2_step);
         }
-        private bool CalcExtCharFromEquivalentCurcuit_CanExecuted(object p) => Transformer.EquivalentCurcuit.Error == string.Empty;
+        private bool CalcExtCharFromEquivalentCurcuit_CanExecuted(object p) => Transformer.EquivalentCurcuit.Error == string.Empty && Transformer.TransformerConfig.Error == string.Empty && ModeParameters.Error == string.Empty;
         #endregion
 
         #region Построить график внешней характерискики из паспортных данных (CalcExtCharFromEquivalentCurcuitCommand)
@@ -55,7 +55,7 @@ namespace TransformExtChar.ViewModel
                 PlotterVM.UpdateEditedSeries(newCharacteristic);
             });
         }
-        private bool CalcExtCharFromDataSheet_CanExecuted(object p) => DataSheet.Error == string.Empty;
+        private bool CalcExtCharFromDataSheet_CanExecuted(object p) => DataSheet.Error == string.Empty && DataSheet.TransformerConfig.Error == string.Empty && ModeParameters.Error == string.Empty;
 
         #endregion
 
@@ -66,7 +66,7 @@ namespace TransformExtChar.ViewModel
             if (DataSheet.TryGetTransformer(out var transformer))
                 Transformer = transformer;
         }
-        private bool CalcTransformerFromDataSheet_CanExecuted(object p) => DataSheet.Error == string.Empty;
+        private bool CalcTransformerFromDataSheet_CanExecuted(object p) => DataSheet.Error == string.Empty && DataSheet.TransformerConfig.Error == string.Empty;
         #endregion
 
         #region Сохранение в файл и загрузка из файла трансформатора и его паспортных данных
@@ -154,80 +154,32 @@ namespace TransformExtChar.ViewModel
 
         #endregion
 
-        
+        #region Очистить поля трансформатора или паспортных данных
+
+        public ICommand ClearFieldsCommand { get; }
+
+        private void ClearFields_Executed(object p)
+        {
+            Action update;
+            if (p == Transformer)
+            {
+                update = () => Transformer = new Transformer();
+            }
+            else if (p == DataSheet)
+            {
+                update = () => DataSheet = new TransformerDatasheet();
+            }
+            else throw new Exception();
+
+            var result = MessageBox.Show("Очистить поля?", "Очистить поля?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if(result == MessageBoxResult.Yes) update();
+        }
 
         #endregion
 
-        #region Тип трансформатора и обмоток
-        public List<TransformerTypeEnum> TransformerTypes { get; set; } = new List<TransformerTypeEnum>
-        {
-            TransformerTypeEnum.None,
-            TransformerTypeEnum.OnePhase,
-            TransformerTypeEnum.ThreePhase
-        };
-        public List<StarOrTriangleEnum> StarOrTriangles { get; set; } = new List<StarOrTriangleEnum>
-        {
-            StarOrTriangleEnum.None,
-            StarOrTriangleEnum.Star,
-            StarOrTriangleEnum.Triangle
-        };
-
-
-        private TransformerTypeEnum _transformerType;
-        public TransformerTypeEnum TransformerType
-        {
-            get => _transformerType;
-            set
-            {
-                Set(ref _transformerType, value);
-
-                Transformer.TransformerType = TransformerType;
-                DataSheet.TransformerType = TransformerType;
-
-                if (value != TransformerTypeEnum.ThreePhase)
-                {
-                    FirstWinding = StarOrTriangles[0];
-                    SecondWinding = StarOrTriangles[0];
-                    StarOrTriangleEnabled = false;
-                }
-                else
-                    StarOrTriangleEnabled = true;
-            }
-        }
-
-        private StarOrTriangleEnum _firstWinding;
-        public StarOrTriangleEnum FirstWinding
-        {
-            get => _firstWinding;
-            set
-            {
-                Set(ref _firstWinding, value);
-
-                Transformer.FirstWinding = FirstWinding;
-                DataSheet.FirstWinding = FirstWinding;
-            }
-        }
-
-        private StarOrTriangleEnum _secondWinding;
-        public StarOrTriangleEnum SecondWinding
-        {
-            get => _secondWinding;
-            set
-            {
-                Set(ref _secondWinding, value);
-
-                Transformer.SecondWinding = SecondWinding;
-                DataSheet.SecondWinding = SecondWinding;
-            }
-        }
-
-        private bool _starOrTriangleEnabled;
-        public bool StarOrTriangleEnabled
-        {
-            get => _starOrTriangleEnabled;
-            set => Set(ref _starOrTriangleEnabled, value);
-        }
         #endregion
+
 
         private Transformer _transformer = new Transformer(new EquivalentCurcuit()
                                                            {
@@ -242,17 +194,23 @@ namespace TransformExtChar.ViewModel
         public Transformer Transformer
         {
             get => _transformer;
-            set => Set(ref _transformer, value);
+            set
+            {
+                Set(ref _transformer, value);
+            }
         }
-        private TransformerDatasheet _dataSheet = new TransformerDatasheet();
+        private TransformerDatasheet _dataSheet = new TransformerDatasheet() { U1r = 220, U2r = 115, I1r = 7.3, I0 = 0.76, P0 = 26, U1sc = 10, Psc = 72 };
         public TransformerDatasheet DataSheet 
         {
-            get => _dataSheet; 
-            set => Set(ref _dataSheet, value);
+            get => _dataSheet;
+            set
+            {
+                Set(ref _dataSheet, value);
+            }
         }
         public ModeParameters ModeParameters { get; set; } = new ModeParameters();
-        private bool _fullChar;
 
+        private bool _fullChar;
         public bool FullChar
         {
             get => _fullChar;
@@ -281,7 +239,7 @@ namespace TransformExtChar.ViewModel
             CalcTransformerFromDataSheetCommand = new RelayCommand(CalcTransformerFromDataSheet_Executed, CalcTransformerFromDataSheet_CanExecuted, "Пересчитать Т схему замещения");
             SaveTransToJsonCommand = new RelayCommand(SaveTransToJson_Executed, null, "Сохранить в файл");
             OpenTransFromJsonCommand = new RelayCommand(OpenTransFromJson_Executed, null, "Загрузить из файла");
-            TransformerType = TransformerTypes.First();
+            ClearFieldsCommand = new RelayCommand(ClearFields_Executed, null, "Очистить поля");
         }
         #endregion
     }
