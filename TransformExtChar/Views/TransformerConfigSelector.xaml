@@ -17,7 +17,8 @@
             <StackPanel ToolTip="{Binding Source={StaticResource ToolTipHelper}, Path=ToolTipDictionary[TransformerTypeEnum]}" ToolTipService.ShowDuration="1000000">
                 <TextBlock Text="Вид трансформатора:"/>
                 <ComboBox ItemsSource="{Binding ElementName=ConfigSelector, Path=TransformerTypes}" 
-                          SelectedItem="{Binding TransformerType, ValidatesOnDataErrors=True}">
+                          SelectedItem="{Binding TransformerType, ValidatesOnDataErrors=True}" 
+                          Focusable="False">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <ContentPresenter Content="{Binding Converter={StaticResource TransformerTypeConverter}}"/>
@@ -28,7 +29,8 @@
             <StackPanel ToolTip="{Binding Source={StaticResource ToolTipHelper}, Path=ToolTipDictionary[StarOrTriangleEnum]}">
                 <TextBlock>Соединение первичной обмотки:</TextBlock>
                 <ComboBox ItemsSource="{Binding ElementName=ConfigSelector, Path=StarOrTriangles}" 
-                          SelectedItem="{Binding FirstWinding, ValidatesOnDataErrors=True}">
+                          SelectedItem="{Binding FirstWinding, ValidatesOnDataErrors=True}"
+                          Focusable="False">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <ContentPresenter Content="{Binding Converter={StaticResource StarOrTriangleConverter}, ValidatesOnDataErrors=True}"/>
@@ -37,7 +39,8 @@
                 </ComboBox>
                 <TextBlock>Соединение вторичной обмотки:</TextBlock>
                 <ComboBox ItemsSource="{Binding ElementName=ConfigSelector, Path=StarOrTriangles}" 
-                          SelectedItem="{Binding SecondWinding, ValidatesOnDataErrors=True}">
+                          SelectedItem="{Binding SecondWinding, ValidatesOnDataErrors=True}"
+                          Focusable="False">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <ContentPresenter Content="{Binding Converter={StaticResource StarOrTriangleConverter}, ValidatesOnDataErrors=True}"/>

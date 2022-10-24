@@ -16,7 +16,7 @@
         x:Name="TransWindow"
         Loaded="Window_Loaded"
         Unloaded="Window_Unloaded"
-        Title="Внешняя характеристика трансформатора" MinWidth="1450" MinHeight="600">
+        Title="Внешняя характеристика трансформатора" MinWidth="1245" MinHeight="600" Width="1245">
     <Window.DataContext>
         <vm:TransExternalCharViewModel/>
     </Window.DataContext>
@@ -31,19 +31,30 @@
         <cnvrt:BoolNotConverter x:Key="BoolNotConverter"/>
     </Window.Resources>
     <Grid Background="{StaticResource ResourceKey=BackgroundColor}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="2*"/>
+        <Grid.RowDefinitions >
+            <RowDefinition Height="*" MinHeight="250" MaxHeight="{Binding ElementName=TransformerParameter, Path=MaxHeight}"/>
+            <RowDefinition Height="2*" MinHeight="300"/>
         </Grid.RowDefinitions>
         <!--Панели ввода всех параметров и изображение схемы замещения-->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="2*" x:Name="SecondCol"/>
+                <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <!--Панели с параметрами трансформатора-->
-            <Border Grid.Column="0" Margin="3" Padding="3" BorderThickness="3" BorderBrush="Gray" CornerRadius="7" MinWidth="350" HorizontalAlignment="Left">
+            <Border 
+                x:Name="TransformerParameter"
+                Grid.Column="0" 
+                Margin="3" 
+                Padding="3" 
+                BorderThickness="3" 
+                BorderBrush="Gray" 
+                CornerRadius="7" 
+                MinWidth="350" 
+                MaxHeight="512" 
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Top">
                 <TabControl Background="{StaticResource BackgroundColor}">
                     <TabControl.Resources>
                         <core:Double x:Key="ImageAwesomeHeight">18</core:Double>
@@ -449,13 +460,13 @@
                 </TabControl>
             </Border>
             <!--Изображение схемы замещения-->
-            <Image Grid.Column="1" Stretch="Uniform">
+            <Image Grid.Column="1" Stretch="None" MaxHeight="245" HorizontalAlignment="Center" VerticalAlignment="Top">
                 <Image.Source>
-                    <BitmapImage DecodePixelWidth="{Binding ElementName=SecondCol, Path=MinWidth}" UriSource="/equivalent circuit.png"/>
+                    <BitmapImage DecodePixelWidth="500" UriSource="/equivalent circuit.png"/>
                 </Image.Source>
             </Image>
             <!--Тип трансформатора и параметры расчетного режима-->
-            <Border Grid.Column="2" Margin="3" BorderThickness="3" BorderBrush="Gray" CornerRadius="7" MinWidth="350" HorizontalAlignment="Right">
+            <Border Grid.Column="2" Margin="3" BorderThickness="3" BorderBrush="Gray" CornerRadius="7" MinWidth="350" MaxHeight="245" HorizontalAlignment="Right" VerticalAlignment="Top">
                 <ScrollViewer Margin="3" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <!--Параметры расчетного режима-->
@@ -581,6 +592,7 @@
             </Border>
         </Grid>
         <!--Плоттер с кнопками управления-->
+        
         <DockPanel Grid.Row="1" Margin="5" DataContext="{Binding PlotterVM}">
             <DockPanel.Resources>
                 <core:Double x:Key="ImageAwesomeHeight">18</core:Double>
@@ -620,20 +632,30 @@
                     <fa5:ImageAwesome Icon="Regular_FileImage" Height="{StaticResource ResourceKey=ImageAwesomeHeight}"/>
                 </Button>
             </WrapPanel>
-            <oxy:PlotView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                      x:Name="PlotView"
-                      Model="{Binding Plotter}"
-                      AllowDrop="True" Drop="Plotter_Drop">
-                <oxy:PlotView.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Сбросить оси" Click="RefreshAxis"/>
-                        <MenuItem Header="Зафиксировать график" Command="{Binding FixSeriesCommand}"/>
-                        <MenuItem Header="Удалить скрытые графики" Command="{Binding DeleteHiddenSeriesCommand}"/>
-                        <MenuItem Header="Загрузить график из CSV" x:Name="AddSeriesFromFileMenuItem" Command="{Binding AddSeriesFromFileCommand}"/>
-                        <MenuItem Header="Сохранить в PNG" Command="{Binding SavePNGCommand}" CommandParameter="{x:Reference Name=PlotView}"/>
-                    </ContextMenu>
-                </oxy:PlotView.ContextMenu>
-            </oxy:PlotView>
+            <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" >
+                 <oxy:PlotView 
+                         x:Name="PlotView"
+                         Model="{Binding Plotter}"
+                         AllowDrop="True" Drop="Plotter_Drop">
+                      <oxy:PlotView.ContextMenu>
+                          <ContextMenu>
+                              <MenuItem Header="Сбросить оси" Click="RefreshAxis"/>
+                              <MenuItem Header="Зафиксировать график" Command="{Binding FixSeriesCommand}"/>
+                              <MenuItem Header="Удалить скрытые графики" Command="{Binding DeleteHiddenSeriesCommand}"/>
+                              <MenuItem Header="Загрузить график из CSV" x:Name="AddSeriesFromFileMenuItem" Command="{Binding AddSeriesFromFileCommand}"/>
+                              <MenuItem Header="Сохранить в PNG" Command="{Binding SavePNGCommand}" CommandParameter="{x:Reference Name=PlotView}"/>
+                          </ContextMenu>
+                      </oxy:PlotView.ContextMenu>
+            </oxy:PlotView>  
+            </Border>
+            
         </DockPanel>
+        <GridSplitter 
+            Grid.Row="1" 
+            Grid.ColumnSpan="3" 
+            Height="3" 
+            VerticalAlignment="Top" 
+            HorizontalAlignment="Stretch" 
+            Background="DarkGray"/>
     </Grid>
 </Window>

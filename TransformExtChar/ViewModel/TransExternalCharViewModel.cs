@@ -37,7 +37,6 @@ namespace TransformExtChar.ViewModel
         #endregion
 
         #region Построить график внешней характерискики из паспортных данных (CalcExtCharFromEquivalentCurcuitCommand)
-
         public ICommand CalcExtCharFromDataSheetCommand { get; }
 
         private void CalcExtCharFromDataSheet_Executed(object p)
@@ -64,7 +63,7 @@ namespace TransformExtChar.ViewModel
         public void CalcTransformerFromDataSheet_Executed(object p)
         {
             if (DataSheet.TryGetTransformer(out var transformer))
-                Transformer = transformer;
+                Transformer = new DataErrorInfoTransformer(transformer);
         }
         private bool CalcTransformerFromDataSheet_CanExecuted(object p) => DataSheet.Error == string.Empty && DataSheet.TransformerConfig.Error == string.Empty;
         #endregion
@@ -108,7 +107,7 @@ namespace TransformExtChar.ViewModel
             bool deserializeIsSuccess = true;
 
             var setting = new JsonSerializerSettings();
-            setting.Error = delegate (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) 
+            setting.Error = (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) =>
             {
                 if (deserializeIsSuccess)
                 {
@@ -125,7 +124,7 @@ namespace TransformExtChar.ViewModel
                 {
                     var transformer = JsonConvert.DeserializeObject<Transformer>(File.ReadAllText(path), setting);
                     if (deserializeIsSuccess)
-                        Transformer =  transformer;
+                        Transformer = new DataErrorInfoTransformer(transformer);
                 };
             }
             else if (p == DataSheet)
@@ -133,9 +132,8 @@ namespace TransformExtChar.ViewModel
                 {
                     var dataDheet = JsonConvert.DeserializeObject<TransformerDatasheet>(File.ReadAllText(path), setting);
                     if (deserializeIsSuccess)
-                        DataSheet = dataDheet;
+                        DataSheet = new DataErrorInfoTransformerDatasheet(dataDheet);
                 };
-
             else throw new Exception();
 
             var dlg = new OpenFileDialog 
@@ -163,11 +161,11 @@ namespace TransformExtChar.ViewModel
             Action update;
             if (p == Transformer)
             {
-                update = () => Transformer = new Transformer();
+                update = () => Transformer = new DataErrorInfoTransformer();
             }
             else if (p == DataSheet)
             {
-                update = () => DataSheet = new TransformerDatasheet();
+                update = () => DataSheet = new DataErrorInfoTransformerDatasheet();
             }
             else throw new Exception();
 
@@ -180,18 +178,8 @@ namespace TransformExtChar.ViewModel
 
         #endregion
 
-
-        private Transformer _transformer = new Transformer(new EquivalentCurcuit()
-                                                           {
-                                                               R1 = 0.67,
-                                                               X1 = 0.11,
-                                                               R2_Corrected = 0.67,
-                                                               X2_Corrected = 0.11,
-                                                               Rm = 45.013,
-                                                               Xm = 285.95,
-                                                               K = 1.91
-                                                           });
-        public Transformer Transformer
+        private DataErrorInfoTransformer _transformer;
+        public DataErrorInfoTransformer Transformer
         {
             get => _transformer;
             set
@@ -199,8 +187,8 @@ namespace TransformExtChar.ViewModel
                 Set(ref _transformer, value);
             }
         }
-        private TransformerDatasheet _dataSheet = new TransformerDatasheet() { U1r = 220, U2r = 115, I1r = 7.3, I0 = 0.76, P0 = 26, U1sc = 10, Psc = 72 };
-        public TransformerDatasheet DataSheet 
+        private DataErrorInfoTransformerDatasheet _dataSheet;
+        public DataErrorInfoTransformerDatasheet DataSheet 
         {
             get => _dataSheet;
             set
@@ -208,7 +196,7 @@ namespace TransformExtChar.ViewModel
                 Set(ref _dataSheet, value);
             }
         }
-        public ModeParameters ModeParameters { get; set; } = new ModeParameters();
+        public ModeParameters ModeParameters { get; }
 
         private bool _fullChar;
         public bool FullChar
@@ -234,6 +222,22 @@ namespace TransformExtChar.ViewModel
         #region Конструкторы
         public TransExternalCharViewModel()
         {
+            Transformer = new DataErrorInfoTransformer( new Transformer(
+                                                            new DataErrorInfoEquivalentCurcuit()
+                                                            {
+                                                                R1 = 0.67,
+                                                                X1 = 0.11,
+                                                                R2_Corrected = 0.67,
+                                                                X2_Corrected = 0.11,
+                                                                Rm = 45.013,
+                                                                Xm = 285.95,
+                                                                K = 1.91
+                                                            },
+                                                            new DataErrorInfoTransformerConfig()));
+
+            DataSheet = new DataErrorInfoTransformerDatasheet() { U1r = 220, U2r = 115, I1r = 7.3, I0 = 0.76, P0 = 26, U1sc = 10, Psc = 72 };
+            ModeParameters = new ModeParameters();
+
             CalcExtCharFromEquivalentCurcuitCommand = new RelayCommand(CalcExtCharFromEquivalentCurcuit_Executed, CalcExtCharFromEquivalentCurcuit_CanExecuted, "Построить внешнюю характеристику из Т схемы замещения");
             CalcExtCharFromDataSheetCommand = new RelayCommand(CalcExtCharFromDataSheet_Executed, CalcExtCharFromDataSheet_CanExecuted, "Построить внешнюю характеристику из паспортных данных");
             CalcTransformerFromDataSheetCommand = new RelayCommand(CalcTransformerFromDataSheet_Executed, CalcTransformerFromDataSheet_CanExecuted, "Пересчитать Т схему замещения");

@@ -35,5 +35,9 @@ namespace TransformExtChar.Views
         {
             InitializeComponent();
         }
+        void combobox_MouseWheel(object sender, MouseEventArgs e)
+        {
+            e.Handled = true;
+        }
     }
 }
