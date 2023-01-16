@@ -172,7 +172,7 @@ namespace TransformExtChar.ViewModel
             FixSeriesCommand = new RelayCommand(FixSeries_Executed, FixSeries_CanExecuted, "Зафиксировать график");
             DeleteHiddenSeriesCommand = new RelayCommand(DeleteHiddenSeries_Execute, DeleteHiddenSeries_CanExecute, "Удалить скрытые графики\n(чтобы скрыть график, кликните по его имени в легенде)");
             AddSeriesFromFileCommand = new RelayCommand(AddSeriesFromFile_Execute, AddSeriesFromFile_CanExecute, "Загрузить графики из CSV файла");
-            SavePNGCommand = new RelayCommand(SavePNG_Execute, SavePNG_CanExecute, "Сохранить плоттер в PNG");
+            SavePNGCommand = new RelayCommand(SavePNG_Execute, SavePNG_CanExecute, "Сохранить график в PNG");
         }
 
         private static PlotModel CreatePlotModel()
@@ -180,6 +180,7 @@ namespace TransformExtChar.ViewModel
             PlotModel pm = new PlotModel
             {
                 Title = "Внешняя характеристика трансформатора",
+                Background = OxyColors.White,
                 TitleFontSize = 16,
                 TitlePadding = 3
             };
@@ -217,6 +218,7 @@ namespace TransformExtChar.ViewModel
             if (newSeries.Count == 0)                                                // если введены некорректные данные и график содержит 0 точек
             {                                                                        // то удалить график из плоттера, если он там есть (чтобы в легенде    
                 Plotter.Series.Remove(EditedSeries);                                 // не отображалось несуществующего графика)
+                EditedSeries.Points.Clear();
                 MessageBus.Send(MessageEnum.InvalidatePlot_UpdateDataFalse);         // обновить плоттер                          
                 return;
             }

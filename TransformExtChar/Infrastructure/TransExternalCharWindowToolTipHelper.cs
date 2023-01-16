@@ -14,15 +14,15 @@ namespace TransformExtChar.Infrastructure
             {
                 #region TransformerDatasheet
 
-                {nameof(TransformerDatasheet.I0), "Ток холостого хода\n(Линейный в случае трехфазного трансформатора)" },
-                {nameof(TransformerDatasheet.I0_Percent), "Проценты от номинального тока первичной обмотки" },
-                {nameof(TransformerDatasheet.U1r), "Номинальное первичное напряжение\n(Линейное в случае трехфазного трансформатора)" },
-                {nameof(TransformerDatasheet.U2r),  "Номинальное вторичное напряжение\n(Линейное в случае трехфазного трансформатора)" },
-                {nameof(TransformerDatasheet.I1r), "Номинальный ток первичной обмотки\n(Линейный в случае трехфазного трансформатора)" },
-                {nameof(TransformerDatasheet.P0),  "Мощность холостого хода\n(Суммарная мощность трех фаз в случае трехфазного трансформатора)" },
-                {nameof(TransformerDatasheet.U1sc), "Напряжение короткого замыкания (при номинальном токе первичной обмотки)\n(Линейное в случае трехфазного трансформатора)"},
-                {nameof(TransformerDatasheet.U1sc_Percent), "Проценты от номинального напряжения первичной обмотки"},
-                {nameof(TransformerDatasheet.Psc), "Мощность короткого замыкания (при номинальном токе первичной обмотки)\n(Суммарная мощность трех фаз в случае трехфазного трансформатора)" },
+                {nameof(DataErrorInfoTransformerDatasheet.I0), "Ток холостого хода\n(Линейный в случае трехфазного трансформатора)" },
+                {nameof(DataErrorInfoTransformerDatasheet.I0_Percent), "Проценты от номинального тока первичной обмотки" },
+                {nameof(DataErrorInfoTransformerDatasheet.U1r), "Номинальное первичное напряжение\n(Линейное в случае трехфазного трансформатора)" },
+                {nameof(DataErrorInfoTransformerDatasheet.U2r),  "Номинальное вторичное напряжение\n(Линейное в случае трехфазного трансформатора)" },
+                {nameof(DataErrorInfoTransformerDatasheet.I1r), "Номинальный ток первичной обмотки\n(Линейный в случае трехфазного трансформатора)" },
+                {nameof(DataErrorInfoTransformerDatasheet.P0),  "Мощность холостого хода\n(Суммарная мощность трех фаз в случае трехфазного трансформатора)" },
+                {nameof(DataErrorInfoTransformerDatasheet.U1sc), "Напряжение короткого замыкания (при номинальном токе первичной обмотки)\n(Линейное в случае трехфазного трансформатора)"},
+                {nameof(DataErrorInfoTransformerDatasheet.U1sc_Percent), "Проценты от номинального напряжения первичной обмотки"},
+                {nameof(DataErrorInfoTransformerDatasheet.Psc), "Мощность короткого замыкания (при номинальном токе первичной обмотки)\n(Суммарная мощность трех фаз в случае трехфазного трансформатора)" },
 
                 #endregion
 

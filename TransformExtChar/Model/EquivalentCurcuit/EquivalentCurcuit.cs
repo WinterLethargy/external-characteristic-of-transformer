@@ -8,183 +8,79 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using TransformExtChar.Infrastructure;
+using TransformExtChar.Infrastructure.DataErrorVerify;
 
 namespace TransformExtChar.Model
 {
-    public class EquivalentCurcuit : OnPropertyChangedClass, IDataErrorInfo
+    public class EquivalentCurcuit : IEquivalentCurcuit
     {
         #region Параметры схемы замещения
         private Complex _Z1;
-
-        [JsonProperty(Required = Required.Always)]
         public Complex Z1
         {
             get => _Z1;
-            set
-            {
-                _Z1 = value;
-                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors, nameof(R1));
-                OnPropertyChanged(nameof(R1));
-            }
+            set => _Z1 = value;
         }
 
-        [JsonIgnore]
         public double R1
         {
             get => Z1.Real;
-            set
-            {
-                Z1 = new Complex(value, X1);
-                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                OnPropertyChanged();
-            }
+            set => _Z1 = new Complex(value, X1);
         }
 
-        [JsonIgnore]
         public double X1
         {
             get => Z1.Imaginary;
-            set
-            {
-                Z1 = new Complex(R1, value);
-                OnPropertyChanged();
-            }
+            set => _Z1 = new Complex(R1, value);
         }
 
         private Complex _Z2_Corrected;
-
-        [JsonProperty(Required = Required.Always)]
         public Complex Z2_Сorrected
         {
             get => _Z2_Corrected;
-            set
-            {
-                _Z2_Corrected = value;
-                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors, nameof(R2_Corrected));
-                OnPropertyChanged(nameof(R2_Corrected));
-            }
+            set => _Z2_Corrected = value; 
         }
 
-        [JsonIgnore]
         public double R2_Corrected
         {
             get => Z2_Сorrected.Real;
-            set
-            {
-                Z2_Сorrected = new Complex(value, X2_Corrected);
-                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                OnPropertyChanged();
-            }
+            set => _Z2_Corrected = new Complex(value, X2_Corrected);
         }
 
-        [JsonIgnore]
         public double X2_Corrected
         {
             get => Z2_Сorrected.Imaginary;
-            set
-            {
-                Z2_Сorrected = new Complex(R2_Corrected, value);
-                OnPropertyChanged();
-            }
+            set=> _Z2_Corrected = new Complex(R2_Corrected, value);
         }
 
         private Complex _Zm;
-
-        [JsonProperty(Required = Required.Always)]
         public Complex Zm
         {
             get => _Zm;
-            set
-            {
-                _Zm = value;
-                DataErrorChecker.AboveOrEqualZeroCheck(value.Real, errors, PropertyName: nameof(Rm));
-                MagnetizingBranchCheck();
-                OnPropertyChanged(nameof(Rm));
-            }
+            set => _Zm = value;
         }
 
-        [JsonIgnore]
         public double Rm
         {
             get => Zm.Real;
-            set
-            {
-                Zm = new Complex(value, Xm);
-                DataErrorChecker.AboveOrEqualZeroCheck(value, errors);
-                MagnetizingBranchCheck();
-                OnPropertyChanged();
-            }
+            set => _Zm = new Complex(value, Xm);
         }
 
-        [JsonIgnore]
         public double Xm
         {
             get => Zm.Imaginary;
-            set
-            {
-                Zm = new Complex(Rm, value);
-                MagnetizingBranchCheck();
-                OnPropertyChanged();
-            }
+            set => _Zm =new Complex(Rm, value);
         }
 
         private double _K;
-
-        [JsonProperty(Required = Required.Always)]
         public double K
         {
             get => _K;
-            set
-            {
-                if (Set(ref _K, value))
-                    DataErrorChecker.AboveZeroCheck(value, errors);
-            }
-        }
-        #endregion
-
-        #region Реализация IDataErrorInfo
-        [JsonIgnore]
-        public string Error => errors.Any(str => str.Value != null) ? "Error" : string.Empty;
-        public string this[string columnName] => errors.ContainsKey(columnName) ? errors[columnName] : null;
-        private Dictionary<string, string> errors = new Dictionary<string, string>();
-        #endregion
-
-        #region Методы проверкок ошибок данных
-        private void MagnetizingBranchCheck([CallerMemberName] string PropertyName = null, bool recursive = true)
-        {
-            DataErrorChecker.CheckErrors(() => Zm.Magnitude == 0, "В ветви намагничивания должно быть сопротивление", errors, PropertyName);
-
-            if (recursive)
-            {
-                const string firstName = nameof(Rm);
-                const string secondName = nameof(Xm);
-                const string ZmName = nameof(Zm);
-
-                switch (PropertyName)
-                {
-                    case firstName:
-                        MagnetizingBranchCheck(secondName, false);
-                        OnPropertyChanged(secondName);
-                        break;
-                    case secondName:
-                        MagnetizingBranchCheck(firstName, false);
-                        OnPropertyChanged(firstName);
-                        break;
-                    case ZmName:
-                        MagnetizingBranchCheck(firstName, false);
-                        OnPropertyChanged(firstName);
-                        MagnetizingBranchCheck(secondName, false);
-                        OnPropertyChanged(secondName);
-                        break;
-                    default:
-                        throw new ArgumentException();
-                }
-            }
+            set => _K = value;
         }
         #endregion
 
         #region Методы, считающие внешнюю характеристику
-
         public Task<List<VCPointData>> GetExternalCharacteristicAsync(double fi2_rad = 0, double I2_correctedStart = 0, double I2_correctedEnd = 0,
                                                       double U1 = 0, double I2_step = 0.01)
         {
@@ -310,7 +206,6 @@ namespace TransformExtChar.Model
                 ExternalCharacteristic.Add(data);
             }
         }
-
         #endregion
     }
 }

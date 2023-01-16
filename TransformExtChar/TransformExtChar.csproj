@@ -4,11 +4,16 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>трансформаторы_на_схемах.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="equivalent circuit.png" />
     <None Remove="hornet.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="трансформаторы_на_схемах.ico" />
   </ItemGroup>
 
   <ItemGroup>

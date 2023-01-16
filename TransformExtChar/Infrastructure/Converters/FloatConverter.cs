@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Data;
 
 namespace TransformExtChar.Infrastructure.Converters
@@ -17,6 +18,13 @@ namespace TransformExtChar.Infrastructure.Converters
         {
             // return an invalid value in case of the value ends with a point
             string input = value.ToString();
+
+            if (input == "-0")
+                return "";
+            if (Regex.Match(input, @"^-?\d+[.,]0*$").Success)
+                return "";
+            if (Regex.Match(input, @"^-?\d+[.,]\d*0$").Success)
+                return "";
 
             double result;
 
