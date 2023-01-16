@@ -8,7 +8,7 @@ namespace TransformExtChar.Infrastructure
 {
     public class DataRule
     {
-        public Func<bool> Rule { get; }
+        private Func<bool> _rule;
         public string ErrorText { get; }
         public List<string> LinkedPropertyNames { get; }
 
@@ -16,7 +16,7 @@ namespace TransformExtChar.Infrastructure
 
         public bool ValidateRule()
         {
-            bool result = Rule();
+            bool result = _rule();
 
             Validate?.Invoke(this, new RuleValidateEventArgs(this, result));
 
@@ -24,7 +24,7 @@ namespace TransformExtChar.Infrastructure
         }
 
         public DataRule(Func<bool> rule, string errorText, IEnumerable<string> linkedPropetryNames) =>
-            (Rule, ErrorText, LinkedPropertyNames) = (rule, errorText, linkedPropetryNames.ToList());
+            (_rule, ErrorText, LinkedPropertyNames) = (rule, errorText, linkedPropetryNames.ToList());
     }
 
     public delegate void RuleValidateEventHandler(object sender, RuleValidateEventArgs e);

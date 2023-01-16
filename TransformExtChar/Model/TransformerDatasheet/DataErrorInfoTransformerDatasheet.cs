@@ -134,16 +134,16 @@ namespace TransformExtChar.Model
             RegisterCohesionedProperties(nameof(I0), nameof(I0_Percent));
             var I0AboveZeroRule = RegisterRule_PropMustBeAboveZero(() => I0);
             var I0_PercentAboveOrEaualZeroRule = RegisterRule_PropMustBeAboveOrEqualZero(() => I0_Percent);
-            I0AboveZeroRule.Validate += (sender, args) => CheckRuleAndSetError(I0_PercentAboveOrEaualZeroRule, false);
-            I0_PercentAboveOrEaualZeroRule.Validate += (sender, args) => CheckRuleAndSetError(I0AboveZeroRule, false);
+            I0AboveZeroRule.Validate += (sender, args) => CheckRuleAndSetError(I0_PercentAboveOrEaualZeroRule);
+            I0_PercentAboveOrEaualZeroRule.Validate += (sender, args) => CheckRuleAndSetError(I0AboveZeroRule);
 
             RegisterRule_PropMustBeAboveOrEqualZero(() => P0);
 
             RegisterCohesionedProperties(nameof(U1sc), nameof(U1sc_Percent));
             var U1scAboveZeroRule = RegisterRule_PropMustBeAboveZero(() => U1sc);
             var U1sc_PercentAboveOrEaualZeroRule = RegisterRule_PropMustBeAboveOrEqualZero(() => U1sc_Percent);
-            U1scAboveZeroRule.Validate += (sender, args) => CheckRuleAndSetError(U1sc_PercentAboveOrEaualZeroRule, false);
-            U1sc_PercentAboveOrEaualZeroRule.Validate += (sender, args) => CheckRuleAndSetError(U1scAboveZeroRule, false);
+            U1scAboveZeroRule.Validate += (sender, args) => CheckRuleAndSetError(U1sc_PercentAboveOrEaualZeroRule);
+            U1sc_PercentAboveOrEaualZeroRule.Validate += (sender, args) => CheckRuleAndSetError(U1scAboveZeroRule);
 
             RegisterRule_PropMustBeAboveOrEqualZero(() => Psc);
 
@@ -174,12 +174,12 @@ namespace TransformExtChar.Model
 
             DSUnloadedActivePowerRule.Validate += (sender, args) =>
             {
-                TransformerConfig.CheckRuleAndSetError(TCUnloadedActivePowerRule, false);
+                TransformerConfig.CheckRuleAndSetError(TCUnloadedActivePowerRule);
                 TransformerConfig.DefaultPropertyChanged(TCUnActPowlinkedPropertyNames);
             };
             TCUnloadedActivePowerRule.Validate += (sender, args) =>
             {
-                CheckRuleAndSetError(DSUnloadedActivePowerRule, false);
+                CheckRuleAndSetError(DSUnloadedActivePowerRule);
                 DefaultPropertyChanged(DSUnActPowlinkedPropertyNames);
             };
 
@@ -210,12 +210,12 @@ namespace TransformExtChar.Model
 
             DSShortCircuitActivePowerRule.Validate += (sender, args) =>
             {
-                TransformerConfig.CheckRuleAndSetError(TCShortCircuitActivePowerRule, false);
+                TransformerConfig.CheckRuleAndSetError(TCShortCircuitActivePowerRule);
                 TransformerConfig.DefaultPropertyChanged(TCShCrcActPowlinkedPropertyNames);
             };
             TCShortCircuitActivePowerRule.Validate += (sender, args) =>
             {
-                CheckRuleAndSetError(DSShortCircuitActivePowerRule, false);
+                CheckRuleAndSetError(DSShortCircuitActivePowerRule);
                 DefaultPropertyChanged(DSShCrcActPowlinkedPropertyNames);
             };
 

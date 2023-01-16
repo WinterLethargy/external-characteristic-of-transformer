@@ -26,72 +26,75 @@ namespace TransformExtChar.Infrastructure
             foreach (var rule in rulesSet)
                 CheckRegisteredRuleAndSetError(rule);
         }
-        public void CheckdRuleAndSetError(DataRule dataRule, bool validateEvent = true)
+        public void CheckdRuleAndSetError(DataRule dataRule)
         {
             if (IsRegisteredRule(dataRule))
-                CheckRegisteredRuleAndSetError(dataRule, validateEvent);
+                CheckRegisteredRuleAndSetError(dataRule);
             else throw new ArgumentException("Это правило не содержится в зарегистрированных правилах");
         }
-        private void CheckRegisteredRuleAndSetError(DataRule dataRule, bool validateEvent = true)
+
+        private HashSet<DataRule> _chekingRules = new HashSet<DataRule>();
+        private void CheckRegisteredRuleAndSetError(DataRule dataRule)
         {
+            if (_chekingRules.Contains(dataRule))
+                return;
+
+            _chekingRules.Add(dataRule);
+
             var errorText = dataRule.ErrorText;
             string newLineErrorText = "\n" + errorText;
-            Func<bool> ruleSucces;
 
-            if (validateEvent)
-                ruleSucces = dataRule.ValidateRule;
-            else
-                ruleSucces = dataRule.Rule;
-
-            if (ruleSucces())
+            if (dataRule.ValidateRule())
                 dataRule.LinkedPropertyNames.ForEach(pn => RemoveError(pn));
             else
                 dataRule.LinkedPropertyNames.ForEach(pn => SetError(pn));
+            
+            _chekingRules.Remove(dataRule);
 
             void SetError(string propertyName)
-            {
-                errors.TryGetValue(propertyName, out string oldErrorText);
+                {
+                    errors.TryGetValue(propertyName, out string oldErrorText);
 
-                if (oldErrorText == null || oldErrorText == string.Empty)
-                {
-                    errors[propertyName] = errorText;
-                }
-                else
-                {
-                    if (oldErrorText.Contains(errorText))
-                        return;
+                    if (oldErrorText == null || oldErrorText == string.Empty)
+                    {
+                        errors[propertyName] = errorText;
+                    }
                     else
-                        errors[propertyName] = errors[propertyName] + newLineErrorText;
+                    {
+                        if (oldErrorText.Contains(errorText))
+                            return;
+                        else
+                            errors[propertyName] = errors[propertyName] + newLineErrorText;
+                    }
                 }
-            }
 
             void RemoveError(string propertyName)
-            {
-                errors.TryGetValue(propertyName, out string oldErrorText);
-
-                if (oldErrorText == null)
                 {
-                    return;
+                    errors.TryGetValue(propertyName, out string oldErrorText);
+
+                    if (oldErrorText == null)
+                    {
+                        return;
+                    }
+
+                    else if(oldErrorText.StartsWith(errorText))
+                    {
+                        errors[propertyName] = errors[propertyName].Replace(errorText + '\n', "");
+                        errors[propertyName] = errors[propertyName].Replace(errorText, "");
+
+                        if (errors[propertyName] == String.Empty)
+                            errors[propertyName] = null;
+
+                        return;
+                    }
+                    else
+                    {
+                        errors[propertyName] = errors[propertyName].Replace(newLineErrorText, ""); // в случае отсутствия соответствия со строчкой ничего не происходит
+                        errors[propertyName] = errors[propertyName].Replace(errorText, "");        // следует переделать в регулярное выражение
+
+                        var debug = errors[propertyName];
+                    }
                 }
-
-                else if(oldErrorText.StartsWith(errorText))
-                {
-                    errors[propertyName] = errors[propertyName].Replace(errorText + '\n', "");
-                    errors[propertyName] = errors[propertyName].Replace(errorText, "");
-
-                    if (errors[propertyName] == String.Empty)
-                        errors[propertyName] = null;
-
-                    return;
-                }
-                else
-                {
-                    errors[propertyName] = errors[propertyName].Replace(newLineErrorText, ""); // в случае отсутствия соответствия со строчкой ничего не происходит
-                    errors[propertyName] = errors[propertyName].Replace(errorText, "");        // следует переделать в регулярное выражение
-
-                    var debug = errors[propertyName];
-                }
-            }
         }
         public IEnumerable<string> GetPropertyNamesLinkedWith(string propertyName)
         {

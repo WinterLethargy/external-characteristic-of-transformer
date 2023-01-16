@@ -134,9 +134,9 @@ namespace TransformExtChar.Infrastructure.DataErrorVerify
             if (!linkedPropertyNames.Contains(PropertyName))
                 base.OnPropertyChanged(PropertyName);
         }
-        public void CheckRuleAndSetError(DataRule dataRule, bool validateEvent = true)
+        public void CheckRuleAndSetError(DataRule dataRule)
         {
-            _dataValidator.CheckdRuleAndSetError(dataRule, validateEvent);
+            _dataValidator.CheckdRuleAndSetError(dataRule);
         }
         public DataErrorInfoClass()
         {
